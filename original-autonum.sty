@@ -1,0 +1,137 @@
+% This is the autonum package, automatically numbering only the equations which are referenced.
+%
+% (c) Patrick Häcker
+% LPPL LaTeX Public Project License
+%
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{autonum}
+  [2012/05/26 v0.1 autonum LaTeX package]
+\RequirePackage{etoolbox}
+
+
+% TODO: Das hier als Dokumentation verwenden: Man könnte in aux-Datei schreiben, ob eine Gleichung referenziert wurde oder nicht (mit eigenem Befehl die equations-Umgebung erweitern, dazu einfach einen linearen globalen Counter einführen, der bei jeder Gleichung (egal ob referenziert oder nicht) hochzählt und diese Information in aux-Datei festhalten) und dann könnte diese Information verwendet werden, um zu entscheiden, ob eine Gleichungsnummer angezeigt werden soll oder nicht. Das könnte man schön auf die figure- und table-Umgebung übertragen, wo dann jeweils eine Warning ausgegeben werden sollte, falls etwas nicht referenziert wird (die bräuchten ihren eigenen globalen linearen Counter). Beim Prüfen auf den Counter steht dann die echte Nummer zur Verfügung und kann im Warning ausgegeben werden. Das würde ein schönes package ergeben: autonum
+% TODO: Dokumentieren, dass bis zu drei Mal kompiliert werden muss
+% TODO: Dokumentieren und zeigen, dass im Gegensatz zu mathtools es auch mit verschobenem angezeigter Nummer funktioniert
+% TODO: Tests in Dokumentation übernehmen und auf amsmath vs. kein amsmath eingehen:
+% Mit amsmath:
+% \ref{alreadyReferenced}
+% \begin{equation}
+% 	\text{equation without label}
+% \end{equation}
+% \begin{equation}\label{notReferenced}
+% 	\text{equation with label, not referenced}
+% \end{equation}
+% \begin{equation}\label{alreadyReferenced}
+% 	\text{equation with label, already referenced}
+% \end{equation}
+% \begin{equation}\label{referencedLater}
+% 	\text{equation with label, referenced later}
+% \end{equation}
+% \ref{referencedLater}
+
+% Ohne amsmath:
+% \begin{equation}\label{a}
+% 	1+1
+% \end{equation}
+% \begin{equation}\label{b}
+% 	2+2
+% \end{equation}
+% \ref{a}
+
+% TODO: Dokumentieren, dass autonum mit cleveref kompatibel ist, aber autonum nach cleveref geladen werden muss. Falls andersherum, muss die aux-Datei gelöscht werden. Ggf. also amsmath -> cleveref -> autonum
+
+% This command is similar to etoolbox' \csxdef command, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. \ifcsdef can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
+% Usage: \csxdefaux{csname}{replacement}
+\newcommand{\csxdefaux}[2]{%
+	% The expandafter commands are used to first expand the \csname-\endcsname. Then there is a command definition left, where the command and its replacement (which can also be a command) are protected by \string to create the command in the next run (when the aux file is read) and not in the current run (when the aux file is written).
+	\protected@write\@mainaux{}{%
+		\expandafter\string\expandafter\xdef\expandafter\string\csname #1\endcsname{#2}%
+	}%
+}
+
+% This command simply combines the commands \csxdef and \csxdefaux.
+\newcommand{\csxdefall}[2]{%
+	\csxdefaux{#1}{#2}%
+	\csxdef{#1}{#2}%
+}
+
+% Use a counter to numerate all displayed equation environments linearly.
+\newcounter{autonum@counter}
+
+\newcommand{\autonum@patchEnvironment}[1]{
+	% Automatically show an equation's number, if it is referenced and do not use a number otherwise (command from mathtools). This currently does not work with cleveref, as equations without a number increment the equation counter, too. As placing the labels does not always work correctly, \mathtoolsset{showonlyrefs} is not an option (see mathtools documentation, bottom of page 10).
+	\csletcs{autonum@#1Old}{#1}%
+	\csletcs{autonum@end#1Old}{end#1}%
+	\renewenvironment{#1}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\csuse{autonum@#1Old}%
+		}{%
+			\begin{#1*}%
+		}%
+	}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\csuse{autonum@end#1Old}%
+		}{%
+			\end{#1*}%
+			% This command is also used in amsmath (see the amsmath code) to skip spaces in nested environments. It is needed to not change the spacing of the patched environment.
+			\ignorespacesafterend
+		}%
+		\stepcounter{autonum@counter}%
+	}%
+}
+
+% This is needed to not get overwritten by other packages and to use amsmath if it gets loaded after autonum. The package autonum only overwrites some commands whose name start with \autonum. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
+\AfterPreamble{
+	\autonum@patchEnvironment{equation}
+	% These definitions do not work at the moment and the code has to be rethought anyway, because multiple labels are possible.
+% 	\forcsvlist{\autonum@patchEnvironment}{gather,multline,align.flalign,alignat}
+
+	% As equation* is not available without amsmath, define it, if it is unavailable, as it is needed in \autonum@patchEnvironment. If amsmath is used is only known after the preamble.
+	\ifcsundef{equation*}{%
+		\newenvironment{equation*}{\[}{\]}%
+	}{}
+
+	% Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
+	\newcommand{\autonum@IfReferenced}[3]{%
+		\ifcsdef{autonum@#1Referenced}{#2}{#3}%
+	}
+
+	% To patch a variably named label command, generate an extra command for this.
+	\newcommand{\autonum@patchLabel}[1]{%
+		\letcs{\autonum@labelOld}{#1}%
+		\csdef{#1}##1{%
+			% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+			\csxdefall{autonum@##1Labeled}{\Roman{autonum@counter}}%
+			% Call the old label command.
+			\autonum@labelOld{##1}%
+		}%
+	}
+	% Amsmath regularly overwrites the \label command, so use \label@in@display instead of label, if amsmath is loaded: http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2005-11/msg00074.html
+	\ifdef{\label@in@display}{%
+		\autonum@patchLabel{label@in@display}%
+	}{%
+		\autonum@patchLabel{label}%
+	}
+
+	% To patch a variably named reference command, generate an extra command for this.
+	\newcommand{\autonum@patchReference}[1]{%
+		\letcs{\autonum@referenceOld}{#1}%
+		\csdef{#1}##1{%
+			% Mark label as used. As we can have a reference before and after the \label call, save it as an variable (for the current run) and in the aux file (for the next run). This saves one compilation run, although still up to three are needed to get everything right.
+			\ifcsdef{autonum@##1Labeled}{%
+				\csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
+			}{}%
+			% Call the old reference command.
+			\autonum@referenceOld{##1}%
+		}%
+	}
+	% Support the normal \ref command and, if available, the \cref command from cleveref.
+	\autonum@patchReference{ref}%
+	\ifdef{\cref}{%
+		\autonum@patchReference{cref}%
+	}{}%
+}
+
+\endinput
+%%
+%% End of file `autonum.sty'.
