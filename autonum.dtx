@@ -1,0 +1,392 @@
+% \iffalse meta-comment
+% !TEX program  = pdfLaTeX
+%<*internal>
+\iffalse
+%</internal>
+%<*readme>
+----------------------------------------------------------------
+autonum --- Automatic number referenced equations
+E-mail: pat_h@web.de
+Released under the LaTeX Project Public License v1.3c or later
+See http://www.latex-project.org/lppl.txt
+----------------------------------------------------------------
+
+This is the autonum package, automatically numbering only the equations which
+are referenced.
+This package is similar to mathtools' showonlyrefs option, but without
+introducing the bug to overwrite long equations with the equation number.
+
+Usage: \usepackage{autonum}
+
+Everything else should happen automatically.
+To use autonum together with other packages, load autonum last.
+%</readme>
+%<*internal>
+\fi
+\def\nameofplainTeX{plain}
+\ifx\fmtname\nameofplainTeX\else
+  \expandafter\begingroup
+\fi
+%</internal>
+%<*install>
+\input docstrip.tex
+\keepsilent
+\askforoverwritefalse
+\preamble
+----------------------------------------------------------------
+autonum --- Automatic number referenced equations
+E-mail: pat_h@web.de
+Released under the LaTeX Project Public License v1.3c or later
+See http://www.latex-project.org/lppl.txt
+----------------------------------------------------------------
+
+\endpreamble
+\postamble
+
+Copyright (C) 2012 by Patrick Häcker <pat_h@web.de>
+
+This work may be distributed and/or modified under the
+conditions of the LaTeX Project Public License (LPPL), either
+version 1.3c of this license or (at your option) any later
+version.  The latest version of this license is in the file:
+
+http://www.latex-project.org/lppl.txt
+
+This work is "maintained" (as per LPPL maintenance status) by
+Patrick Häcker.
+
+This work consists of the file  autonum.dtx
+and the derived files           autonum.ins,
+                                autonum.pdf and
+                                autonum.sty.
+
+\endpostamble
+\usedir{tex/latex/autonum}
+\generate{
+  \file{autonum.sty}{\from{autonum.dtx}{package}}
+}
+%</install>
+%<install>\endbatchfile
+%<*internal>
+\usedir{source/latex/autonum}
+\generate{
+  \file{autonum.ins}{\from{autonum.dtx}{install}}
+}
+\nopreamble\nopostamble
+\usedir{doc/latex/autonum}
+\generate{
+  \file{README.txt}{\from{autonum.dtx}{readme}}
+}
+\ifx\fmtname\nameofplainTeX
+  \expandafter\endbatchfile
+\else
+  \expandafter\endgroup
+\fi
+%</internal>
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{autonum}[2012/05/26 v0.1 autonum LaTeX package]
+\RequirePackage{etoolbox}
+%</package>
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage[utf8]{inputenx}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{\jobname}
+\usepackage[numbered]{hypdoc}
+\usepackage{autonum}%
+\hypersetup{pdftitle=The autonum package}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{\jobname.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+%\GetFileInfo{\jobname.sty}
+%
+%\title{^^A
+%  \textsf{autonum} --- automatic number referenced equations\thanks{^^A
+%    This file describes version \fileversion, last revised \filedate.^^A
+%  }^^A
+%}
+%\author{^^A
+%  Patrick Häcker\thanks{E-mail: pat\_h@web.de}^^A
+%}
+%\date{Released \filedate}
+%
+%\maketitle
+%
+%\changes{v0.1}{2012/05/26}{First public release}
+%
+% \section{Introduction}
+% In \LaTeX, the user has to decide manually which equation gets a number by optionally adding a star in the math environments. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
+%
+% The other automatic possibility one can think of is to number only the referenced equations. The \href{http://www.ctan.org/tex-archive/macros/latex/contrib/mh/}{mathtools} package's option \texttt{showonlyrefs} seems to be the solution for those, who want to have the referenced equations numbered only. Unfortunately for \href{http://www.ctan.org/pkg/amsmath}{amsmath} users this also means a step backwards, as the numbering can overwrite parts of the equation according to its documentation. Generally, this options seems to be quite unreliable. The autonum package implements the numbering of referenced equations only without this deficiencies.
+%^^A This currently does not work with cleveref, as equations without a number increment the equation counter, too. As placing the labels does not always work correctly, \cmd{\mathtoolsset{showonlyrefs}} is not an option (see mathtools documentation, bottom of page 10).
+%
+% \section{Usage and Examples}
+% To get the automatic numbering of referenced equations, simply load the package:
+%
+% \vspace{0.5em}
+% \cmd{\usepackage\{autonum\}}
+% \vspace{0.5em}
+%
+% The recommended style is to add a label to each equation. Then, simply use the needed references. Never use the starred form.
+%
+%\begin{macro}{equation}
+%^^A With amsmath:
+% The following examples show the results of the equation environment after loading the package. Now let's reference the third equation: \ref{alreadyReferenced}.
+% \makeatletter
+% \begin{equation*}
+% 	1 = 1\quad(\text{equation without label})
+% \end{equation*}
+%
+% \begin{equation*}\label{notReferenced}
+% 	2 = 2\quad(\text{equation with label, not referenced})
+% \end{equation*}
+%
+% \autonum@equationOld\label{alreadyReferenced}
+% 	3 = 3\quad(\text{equation with label, already referenced})
+% \autonum@endequationOld
+%
+% \autonum@equationOld\label{referencedLater}
+% 	4 = 4\quad(\text{equation with label, referenced later})
+% \autonum@endequationOld
+% \makeatother
+% Now let's reference the fourth equation: \ref{referencedLater}. The first and the second equations do not get a number, as they are not referenced.
+%
+% If you want to try an example yourself, you can take this one, where only the first equation gets a number:
+%
+% \vspace{0.5em}
+% \noindent\cmd{\documentclass\{minimal\}}\\
+% \cmd{\usepackage\{autonum\}}\\
+% \cmd{\begin\{document\}}\\
+% \indent\cmd{\begin\{equation\}}\cmd{\label\{a\}}\\
+% \indent\indent a\\
+% \indent\cmd{\end\{equation\}}\\
+% \indent\cmd{\begin\{equation\}}\cmd{\label\{b\}}\\
+% \indent\indent b\\
+% \indent\cmd{\end\{equation\}}\\
+% \indent\cmd{\ref\{a\}}\\
+% \cmd{\end\{document\}}
+% \vspace{0.5em}
+%
+%^^A Ohne amsmath:
+%^^A \begin{equation}\label{a}
+%^^A 	1+1
+%^^A \end{equation}
+%^^A \begin{equation}\label{b}
+%^^A 	2+2
+%^^A \end{equation}
+%^^A \ref{a}
+%
+% To get the correct references up to three compiliation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used.
+%\end{macro}
+%
+%\begin{macro}{equation+}
+% In the probably rare case, that an equation is very important and not references within the text, but some other person wants to reference to that equation, you can use \cmd{\begin\{equation+\}} and \cmd{\end\{equation+\}}. The equation is then numbered in all cases (having a label or not, being referenced or not). This feature has been added, so that all \href{http://tex.stackexchange.com/a/52287}{three referencing practices} are supported in \LaTeX\ with as much automation as possible.
+%\end{macro}
+%
+%^^A \documentclass{article}
+%^^A \usepackage{amsmath}
+%^^A \usepackage{mathtools}
+%^^A \mathtoolsset{showonlyrefs,showmanualtags}
+%^^A \begin{document}
+%^^A \begin{equation}
+%^^A \sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\label{myequation}
+%^^A \end{equation}
+%^^A Text \ref{myequation}
+%^^A \end{document}
+%
+%
+% \section{Compatibility and Load Order}
+% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use  it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors.
+%
+% \section{Further Ideas}
+% \begin{itemize}
+% \item A similar approch could be used for figure and table environments. There, a warning could be printed, if an environment is not referenced.
+% \item Instead of "+" a "*" could be used.
+% \item The starred forms of the environments could be undefined with \csundef{equation*} and \csundef{endequation*} (but change the code before).
+% \end{itemize}
+%
+% \section{Implementation}
+% The basic idea is to write the usage of each label -- labeling and referencing -- into the aux file and save it as variable, so that the information is available in the current and in the next run. As the equation environment does not know anything about labels, a global linear equation counter is used to identify each equation. After the label information is connected to the counter information, each equation can check, if it is referenced or not.
+
+%\begin{macro}{\csxdefaux}
+% This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
+% Usage: \cmd{\csxdefaux{csname}{replacement}}
+%    \begin{macrocode}
+\newcommand{\csxdefaux}[2]{%
+%    \end{macrocode}
+	% The expandafter commands are used to first expand the \cmd{\csname}-\cmd{\endcsname}. Then there is a command definition left, where the command and its replacement (which can also be a command) are protected by \cmd{\string} to create the command in the next run (when the aux file is read) and not in the current run (when the aux file is written).
+%    \begin{macrocode}
+	\protected@write\@mainaux{}{%
+		\expandafter\string\expandafter\xdef\expandafter\string\csname #1\endcsname{#2}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\csxdefall}
+% This command simply combines the commands \cmd{\csxdef} and \cmd{\csxdefaux}.
+%    \begin{macrocode}
+\newcommand{\csxdefall}[2]{%
+	\csxdefaux{#1}{#2}%
+	\csxdef{#1}{#2}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{autonum@counter}
+% Use a counter to numerate all displayed equation environments linearly.
+%    \begin{macrocode}
+\newcounter{autonum@counter}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchEnvironment}
+% Patch a mathematical environment to automatically show an equation's number, if it is referenced and do not use a number otherwise.
+%    \begin{macrocode}
+\newcommand{\autonum@patchEnvironment}[1]{
+	\csletcs{autonum@#1Old}{#1}%
+	\csletcs{autonum@end#1Old}{end#1}%
+	\autonum@saveOldEnvironment{#1}%
+	\autonum@changeEnvironment{#1}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@saveOldEnvironment}
+% Save the old environment to be accessible with an appended +.
+%    \begin{macrocode}
+\newcommand{\autonum@saveOldEnvironment}[1]{
+	\newenvironment{#1+}{%
+		\csuse{autonum@#1Old}%
+	}{%
+		\csuse{autonum@end#1Old}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@changeEnvironment}
+% Now change the invoronment.
+%    \begin{macrocode}
+\newcommand{\autonum@changeEnvironment}[1]{
+	\renewenvironment{#1}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\csuse{autonum@#1Old}%
+		}{%
+			\begin{#1*}%
+		}%
+	}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\csuse{autonum@end#1Old}%
+		}{%
+			\end{#1*}%
+%    \end{macrocode}
+			% The following command is also used in amsmath (see the amsmath code). It is needed to not change the spacing of the patched environment.
+%    \begin{macrocode}
+			\ignorespacesafterend
+		}%
+		\stepcounter{autonum@counter}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+% This is needed to not get overwritten by other packages and to use amsmath if it gets loaded after autonum. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
+%    \begin{macrocode}
+\AfterPreamble{
+	\autonum@patchEnvironment{equation}
+%    \end{macrocode}
+	% These definitions do not work at the moment and the code has to be rethought anyway, because multiple labels are possible.
+%    \begin{macrocode}
+%% 	\forcsvlist{\autonum@patchEnvironment}{gather,multline,align.flalign,alignat}
+%    \end{macrocode}
+
+	% As equation* is only available when using amsmath, define it otherwise, because it is needed in \cmd{\autonum@patchEnvironment}. If amsmath is used, is only known after the preamble.
+%    \begin{macrocode}
+	\ifcsundef{equation*}{%
+		\newenvironment{equation*}{\[}{\]}%
+	}{}
+%    \end{macrocode}
+
+%\begin{macro}{\autonum@IfReferenced}
+	% Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
+%    \begin{macrocode}
+	\newcommand{\autonum@IfReferenced}[3]{%
+		\ifcsdef{autonum@#1Referenced}{#2}{#3}%
+	}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchLabel}
+	% To patch a variably named label command, generate an extra command for this.
+%    \begin{macrocode}
+	\newcommand{\autonum@patchLabel}[1]{%
+		\letcs{\autonum@labelOld}{#1}%
+		\csdef{#1}##1{%
+%    \end{macrocode}
+			% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+			\csxdefall{autonum@##1Labeled}{\Roman{autonum@counter}}%
+%    \end{macrocode}
+			% Call the old label command.
+%    \begin{macrocode}
+			\autonum@labelOld{##1}%
+		}%
+	}
+%    \end{macrocode}
+	% Amsmath regularly overwrites the \cmd{\label} command, so use \cmd{\label@in@display} instead of label, if \href{http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2005-11/msg00074.html}{amsmath is loaded}.
+%    \begin{macrocode}
+	\ifdef{\label@in@display}{%
+		\autonum@patchLabel{label@in@display}%
+	}{%
+		\autonum@patchLabel{label}%
+	}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchReference}
+	% To patch a variably named reference command, generate an extra command.
+%    \begin{macrocode}
+	\newcommand{\autonum@patchReference}[1]{%
+		\letcs{\autonum@referenceOld}{#1}%
+		\csdef{#1}##1{%
+%    \end{macrocode}
+			% Mark label as used. As we can have a reference before and after the \cmd{\label} call, save it as an variable (for the current run) and in the aux file (for the next run). This saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+			\ifcsdef{autonum@##1Labeled}{%
+				\csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
+			}{}%
+%    \end{macrocode}
+			% Call the old reference command.
+%    \begin{macrocode}
+			\autonum@referenceOld{##1}%
+		}%
+	}
+%    \end{macrocode}
+	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
+%    \begin{macrocode}
+	\autonum@patchReference{ref}%
+	\ifdef{\cref}{%
+		\autonum@patchReference{cref}%
+	}{}%
+%    \end{macrocode}
+%\end{macro}
+%    \begin{macrocode}
+}
+%    \end{macrocode}
+
+%\StopEventually{^^A
+%  \PrintChanges
+%^^A  \PrintIndex
+%}
+%
+%\Finale

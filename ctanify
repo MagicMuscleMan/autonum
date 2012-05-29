@@ -1,0 +1,2 @@
+#!/bin/sh
+ctanify autonum.ins autonum.pdf README test-autonum.tex test-autonum.pdf

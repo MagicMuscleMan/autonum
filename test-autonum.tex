@@ -1,0 +1,43 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{autonum}
+
+\begin{document}
+	\section*{Tests}
+	\begin{itemize}
+		\item Placing the number in long equations \ref{long}
+			\begin{equation}\label{long}
+				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
+			\end{equation}
+		\item Having a unlabeled equation
+			\begin{equation}
+				a^2 + b^2 = c^2
+			\end{equation}
+		\item Having a labeled, but unreferenced equation
+			\begin{equation}\label{unreferenced}
+				c
+			\end{equation}
+		\item Having a referenced equation with reference before \ref{referenceBefore}
+			\begin{equation}\label{referenceBefore}
+				d
+			\end{equation}
+		\item Having a referenced equation with reference after
+			\begin{equation}\label{referenceAfter}
+				e
+			\end{equation}
+			\ref{referenceAfter}
+		\item Printing the number without referencing
+			\begin{equation+}
+				f
+			\end{equation+}
+		\item Using cref
+			\begin{equation}\label{cref}
+				g
+			\end{equation}
+			\cref{cref}
+	\end{itemize}
+\end{document}
+
