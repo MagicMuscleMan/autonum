@@ -205,7 +205,7 @@ and the derived files           autonum.ins,
 %
 %
 % \section{Compatibility and Load Order}
-% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use  it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors.
+% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use  it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref.
 %
 % \section{Further Ideas}
 % \begin{itemize}
@@ -274,28 +274,90 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
+%% %\begin{macro}{\autonum@changeEnvironment}
+%% % Now change the invoronment.
+%% %    \begin{macrocode}
+%% \newcommand{\autonum@changeEnvironment}[1]{
+%% 	\renewenvironment{#1}{%
+%% 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+%% 			\csuse{autonum@#1Old}%
+%% 		}{%
+%% 			\begin{#1*}%
+%% 		}%
+%% 	}{%
+%% 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+%% 			\csuse{autonum@end#1Old}%
+%% 		}{%
+%% 			\end{#1*}%
+%% %    \end{macrocode}
+%% 			% The following command is also used in amsmath (see the amsmath code). It is needed to not change the spacing of the patched environment.
+%% %    \begin{macrocode}
+%% 			\ignorespacesafterend
+%% 		}%
+%% 		\stepcounter{autonum@counter}%
+%% 	}%
+%% }
+%% %    \end{macrocode}
+%% %\end{macro}
+
 %\begin{macro}{\autonum@changeEnvironment}
-% Now change the invoronment.
+% Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
+% TODO: This code won't work without amsmath, so treat that case specially as in Version 0.1.
 %    \begin{macrocode}
 \newcommand{\autonum@changeEnvironment}[1]{
 	\renewenvironment{#1}{%
-		\autonum@IfReferenced{\Roman{autonum@counter}}{%
-			\csuse{autonum@#1Old}%
-		}{%
-			\begin{#1*}%
-		}%
+%    \end{macrocode}
+		% This does work as displayed equations cannot be nested. Thus, no global counter must be used, holding the nesting level. For safety, a \cmd{newcommand} is used, so it does not break silently.
+		% TODO: Statt diese Variable zu setzen, besser label an dieser Stelle durch let umbiegen auf gepatchte Variante
+%    \begin{macrocode}
+% 		\let\abcd\label
+		\newcommand{\autonum@inAutonumEnvironment}{}%
+%    \end{macrocode}
+		% In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten.
+%    \begin{macrocode}
+		\csuse{autonum@#1Old}%
+		%% auch das hier auf gepachte Variante umbiegen - die es ist kein Problem, dass dann nicht die aktuelle Version aufgerufen wird, weil in dem Ding mit let wird dennoch das Makro aufgerufen
+		\autonum@patchNewline
 	}{%
 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
-			\csuse{autonum@end#1Old}%
 		}{%
-			\end{#1*}%
-%    \end{macrocode}
-			% The following command is also used in amsmath (see the amsmath code). It is needed to not change the spacing of the patched environment.
-%    \begin{macrocode}
-			\ignorespacesafterend
+			\notag
 		}%
+%    \end{macrocode}
+		% TODO: Beide Variablen müss nicht gelöscht werden, da let lokal arbeitet
+%    \begin{macrocode}
+		\autonum@unpatchNewline
+		\undef{\autonum@inAutonumEnvironment}%
+		\csuse{autonum@end#1Old}%
 		\stepcounter{autonum@counter}%
 	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchNewline}
+% Patch the newline character, as this is the only change to add information to a line in a multi-line equation, which is not labeled.
+%    \begin{macrocode}
+\newcommand{\autonum@patchNewline}{%
+	\let\newlineOld\\%
+	%%TODO:wenn das hier aktiv ist und ein align mit zwei labels verwendet wird, dann bekomme ich folgende Fehlermeldung:  Package amsmath Error: Multiple \label's: label $NAME_OF_FIRST_LABEL will be lost.
+	\renewcommand{\\}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+		}{%
+			\notag
+		}%
+		\newlineOld
+		\stepcounter{autonum@counter}%
+	}
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchNewline}
+% Revert the patching, as newline outside of environment should not be changed.
+%    \begin{macrocode}
+\newcommand{\autonum@unpatchNewline}{%
+	\let\\\newlineOld%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -303,14 +365,11 @@ and the derived files           autonum.ins,
 % This is needed to not get overwritten by other packages and to use amsmath if it gets loaded after autonum. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
 %    \begin{macrocode}
 \AfterPreamble{
-	\autonum@patchEnvironment{equation}
-%    \end{macrocode}
-	% These definitions do not work at the moment and the code has to be rethought anyway, because multiple labels are possible.
-%    \begin{macrocode}
-%% 	\forcsvlist{\autonum@patchEnvironment}{gather,multline,align.flalign,alignat}
+%% 	\autonum@patchEnvironment{equation}%
+	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
 %    \end{macrocode}
 
-	% As equation* is only available when using amsmath, define it otherwise, because it is needed in \cmd{\autonum@patchEnvironment}. If amsmath is used, is only known after the preamble.
+	% As equation* is only available when using amsmath, define it otherwise, because it is needed in \cmd{\autonum@patchEnvironment}. Whether amsmath is used, is only known after the preamble.
 %    \begin{macrocode}
 	\ifcsundef{equation*}{%
 		\newenvironment{equation*}{\[}{\]}%
@@ -333,9 +392,15 @@ and the derived files           autonum.ins,
 		\letcs{\autonum@labelOld}{#1}%
 		\csdef{#1}##1{%
 %    \end{macrocode}
-			% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+			% Only print the label, if it is in an autonum (patched) environment.
 %    \begin{macrocode}
-			\csxdefall{autonum@##1Labeled}{\Roman{autonum@counter}}%
+			\ifdef{\autonum@inAutonumEnvironment}{%
+%    \end{macrocode}
+% TODO: die macrocode-Befehle können auf selbe Ebene wie Code geschoben werden.
+				% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+				\csxdefall{autonum@##1Labeled}{\Roman{autonum@counter}}%
+			}{}%
 %    \end{macrocode}
 			% Call the old label command.
 %    \begin{macrocode}
