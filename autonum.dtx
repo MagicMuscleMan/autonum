@@ -342,17 +342,14 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@patchLabel}
 	% To do the patching of a variably named label command, generate an extra command for this.
 %    \begin{macrocode}
-% TODO: HIer nochmal schauen, was benötigt wird
-\newcommand{\autonum@patchLabel}[1]{%
-% 	\let\autonum@labelOld\label%
-	\expandafter\let\expandafter\autonum@labelOld\autonum@labelCommand%
-% 	\expandafter\let\autonum@labelCommand\autonum@patchedLabel%
+\newcommand{\autonum@patchLabel}{%
+	\let\autonum@labelOld\label%
 	\let\label\autonum@patchedLabel%
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@patchLabel}
+%\begin{macro}{\autonum@patchedLabel}
 % Use an extra command to patch the used label command for efficiency.
 %    \begin{macrocode}
 \newcommand{\autonum@patchedLabel}[1]{%
@@ -443,17 +440,6 @@ and the derived files           autonum.ins,
 		\newenvironment{equation*}{\[}{\]}%
 	}{}
 %    \end{macrocode}
-
-%\begin{macro}{\autonum@labelCommand}
-	% Amsmath regularly overwrites the \cmd{\label} command, so use \cmd{\label@in@display} instead of label, if \href{http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2005-11/msg00074.html}{amsmath is loaded}.
-%    \begin{macrocode}
-	\ifdef{\label@in@display}{%
-		\newcommand{\autonum@labelCommand}{\label@in@display}%
-	}{%
-		\newcommand{\autonum@labelCommand}{\label}%
-	}
-%    \end{macrocode}
-%\end{macro}
 
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
 %    \begin{macrocode}
