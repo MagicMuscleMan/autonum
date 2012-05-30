@@ -209,6 +209,7 @@ and the derived files           autonum.ins,
 %
 % \section{Further Ideas}
 % \begin{itemize}
+% \item A warning could be printed, if another compile is necessary.
 % \item A similar approch could be used for figure and table environments. There, a warning could be printed, if an environment is not referenced.
 % \item Instead of "+" a "*" could be used.
 % \item The starred forms of the environments could be undefined with \csundef{equation*} and \csundef{endequation*} (but change the code before).
@@ -250,21 +251,21 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@patchEnvironment}
-% Patch a mathematical environment to automatically show an equation's number, if it is referenced and do not use a number otherwise.
+% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.
 %    \begin{macrocode}
 \newcommand{\autonum@patchEnvironment}[1]{
-	\csletcs{autonum@#1Old}{#1}%
-	\csletcs{autonum@end#1Old}{end#1}%
-	\autonum@saveOldEnvironment{#1}%
+	\autonum@renameEnvironment{#1}%
 	\autonum@changeEnvironment{#1}%
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@saveOldEnvironment}
-% Save the old environment to be accessible with an appended +.
+%\begin{macro}{\autonum@renameEnvironment}
+% Rename the old environment to be accessible with an appended + by saving the original environment using a different name.
 %    \begin{macrocode}
-\newcommand{\autonum@saveOldEnvironment}[1]{
+\newcommand{\autonum@renameEnvironment}[1]{
+	\csletcs{autonum@#1Old}{#1}%
+	\csletcs{autonum@end#1Old}{end#1}%
 	\newenvironment{#1+}{%
 		\csuse{autonum@#1Old}%
 	}{%
@@ -274,31 +275,33 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-%% %\begin{macro}{\autonum@changeEnvironment}
-%% % Now change the invoronment.
-%% %    \begin{macrocode}
-%% \newcommand{\autonum@changeEnvironment}[1]{
-%% 	\renewenvironment{#1}{%
-%% 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
-%% 			\csuse{autonum@#1Old}%
-%% 		}{%
-%% 			\begin{#1*}%
-%% 		}%
-%% 	}{%
-%% 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
-%% 			\csuse{autonum@end#1Old}%
-%% 		}{%
-%% 			\end{#1*}%
-%% %    \end{macrocode}
-%% 			% The following command is also used in amsmath (see the amsmath code). It is needed to not change the spacing of the patched environment.
-%% %    \begin{macrocode}
-%% 			\ignorespacesafterend
-%% 		}%
-%% 		\stepcounter{autonum@counter}%
-%% 	}%
-%% }
-%% %    \end{macrocode}
-%% %\end{macro}
+%\begin{macro}{\autonum@patchEquationEnvironmentNoAmsmath}
+% Now change the environment.
+%    \begin{macrocode}
+\newcommand{\autonum@patchEquationEnvironmentNoAmsmath}{
+	\autonum@renameEnvironment{equation}%
+% TODO: Label muss noch gepatcht oder genutzt werden
+	\renewenvironment{equation}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\autonum@equationOld
+		}{%
+			\begin{equation*}%
+		}%
+	}{%
+		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+			\autonum@endequationOld%
+		}{%
+			\end{equation*}%
+%    \end{macrocode}
+			% The following command is also used in amsmath (see the amsmath code). It is needed to not change the spacing of the patched environment.
+%    \begin{macrocode}
+			\ignorespacesafterend
+		}%
+		\stepcounter{autonum@counter}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
 
 %\begin{macro}{\autonum@changeEnvironment}
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
@@ -307,31 +310,61 @@ and the derived files           autonum.ins,
 \newcommand{\autonum@changeEnvironment}[1]{
 	\renewenvironment{#1}{%
 %    \end{macrocode}
-		% This does work as displayed equations cannot be nested. Thus, no global counter must be used, holding the nesting level. For safety, a \cmd{newcommand} is used, so it does not break silently.
-		% TODO: Statt diese Variable zu setzen, besser label an dieser Stelle durch let umbiegen auf gepatchte Variante
+		% Prepare the displayed equation environment by calling the old environment's begin command.
 %    \begin{macrocode}
-% 		\let\abcd\label
-		\newcommand{\autonum@inAutonumEnvironment}{}%
+		\csuse{autonum@#1Old}%
+% \gdef\label##1{hallo o}
+%    \end{macrocode}
+		% Patch the label command, as some special data has to be saved with each usage.
+%    \begin{macrocode}
+		\autonum@patchLabel
 %    \end{macrocode}
 		% In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten.
 %    \begin{macrocode}
-		\csuse{autonum@#1Old}%
-		%% auch das hier auf gepachte Variante umbiegen - die es ist kein Problem, dass dann nicht die aktuelle Version aufgerufen wird, weil in dem Ding mit let wird dennoch das Makro aufgerufen
 		\autonum@patchNewline
+% \renewcommand{\df@label}[2]{lala}
+% 	\renewcommand{\label}[1]{hallo ##1 o}
+% \show\label
 	}{%
 		\autonum@IfReferenced{\Roman{autonum@counter}}{%
 		}{%
 			\notag
 		}%
 %    \end{macrocode}
-		% TODO: Beide Variablen müss nicht gelöscht werden, da let lokal arbeitet
 %    \begin{macrocode}
-		\autonum@unpatchNewline
-		\undef{\autonum@inAutonumEnvironment}%
 		\csuse{autonum@end#1Old}%
 		\stepcounter{autonum@counter}%
 	}%
 }
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchLabel}
+	% To do the patching of a variably named label command, generate an extra command for this.
+%    \begin{macrocode}
+% TODO: HIer nochmal schauen, was benötigt wird
+\newcommand{\autonum@patchLabel}[1]{%
+% 	\let\autonum@labelOld\label%
+	\expandafter\let\expandafter\autonum@labelOld\autonum@labelCommand%
+% 	\expandafter\let\autonum@labelCommand\autonum@patchedLabel%
+	\let\label\autonum@patchedLabel%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchLabel}
+% Use an extra command to patch the used label command for efficiency.
+%    \begin{macrocode}
+\newcommand{\autonum@patchedLabel}[1]{%
+%    \end{macrocode}
+	% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+	\csxdefall{autonum@#1Labeled}{\Roman{autonum@counter}}%
+%    \end{macrocode}
+	% Call the old label command.
+%    \begin{macrocode}
+	\autonum@labelOld{#1}%
+	}
 %    \end{macrocode}
 %\end{macro}
 
@@ -340,24 +373,53 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \newcommand{\autonum@patchNewline}{%
 	\let\newlineOld\\%
-	%%TODO:wenn das hier aktiv ist und ein align mit zwei labels verwendet wird, dann bekomme ich folgende Fehlermeldung:  Package amsmath Error: Multiple \label's: label $NAME_OF_FIRST_LABEL will be lost.
-	\renewcommand{\\}{%
-		\autonum@IfReferenced{\Roman{autonum@counter}}{%
-		}{%
-			\notag
-		}%
-		\newlineOld
-		\stepcounter{autonum@counter}%
-	}
+	\let\\\autonum@patchedNewline%
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@patchNewline}
-% Revert the patching, as newline outside of environment should not be changed.
+%\begin{macro}{\autonum@patchedNewline}
+% This command holds the definition of the patched newline, so that it can simply be activated.
 %    \begin{macrocode}
-\newcommand{\autonum@unpatchNewline}{%
-	\let\\\newlineOld%
+%%TODO:wenn das hier aktiv ist und ein align mit zwei labels verwendet wird, dann bekomme ich folgende Fehlermeldung:  Package amsmath Error: Multiple \label's: label $NAME_OF_FIRST_LABEL will be lost.
+\newcommand{\autonum@patchedNewline}{%
+	\autonum@IfReferenced{\Roman{autonum@counter}}{%
+	}{%
+		\notag
+	}%
+	\newlineOld
+	\stepcounter{autonum@counter}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@IfReferenced}
+% Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
+%    \begin{macrocode}
+\newcommand{\autonum@IfReferenced}[3]{%
+	\ifcsdef{autonum@#1Referenced}{#2}{#3}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+
+%\begin{macro}{\autonum@patchReference}
+% To patch a variably named reference command, generate an extra command. The patch logic is different to patching the label command, as the references have to be patched only once, so optimizing for speed is counterproductive.
+%    \begin{macrocode}
+\newcommand{\autonum@patchReference}[1]{%
+	\csletcs{autonum@reference#1Old}{#1}%
+	\csdef{#1}##1{%
+%    \end{macrocode}
+		% Mark label as used if it had been used. As we can have a reference before and after the \cmd{\label} call, save it as an variable (for the current run) and in the aux file (for the next run). This saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+		\ifcsdef{autonum@##1Labeled}{%
+			\csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
+		}{}%
+%    \end{macrocode}
+		% Call the old reference command.
+%    \begin{macrocode}
+		\csuse{autonum@reference#1Old}{##1}%
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -365,8 +427,14 @@ and the derived files           autonum.ins,
 % This is needed to not get overwritten by other packages and to use amsmath if it gets loaded after autonum. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
 %    \begin{macrocode}
 \AfterPreamble{
-%% 	\autonum@patchEnvironment{equation}%
-	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
+%    \end{macrocode}
+	% If amsmath has been loaded, then all of amsmath's environments are redefined.
+%    \begin{macrocode}
+	\ifdef{\gather}{
+		\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
+	}{
+		\autonum@patchEquationEnvironmentNoAmsmath%
+	}
 %    \end{macrocode}
 
 	% As equation* is only available when using amsmath, define it otherwise, because it is needed in \cmd{\autonum@patchEnvironment}. Whether amsmath is used, is only known after the preamble.
@@ -376,67 +444,17 @@ and the derived files           autonum.ins,
 	}{}
 %    \end{macrocode}
 
-%\begin{macro}{\autonum@IfReferenced}
-	% Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
-%    \begin{macrocode}
-	\newcommand{\autonum@IfReferenced}[3]{%
-		\ifcsdef{autonum@#1Referenced}{#2}{#3}%
-	}
-%    \end{macrocode}
-%\end{macro}
-
-%\begin{macro}{\autonum@patchLabel}
-	% To patch a variably named label command, generate an extra command for this.
-%    \begin{macrocode}
-	\newcommand{\autonum@patchLabel}[1]{%
-		\letcs{\autonum@labelOld}{#1}%
-		\csdef{#1}##1{%
-%    \end{macrocode}
-			% Only print the label, if it is in an autonum (patched) environment.
-%    \begin{macrocode}
-			\ifdef{\autonum@inAutonumEnvironment}{%
-%    \end{macrocode}
-% TODO: die macrocode-Befehle können auf selbe Ebene wie Code geschoben werden.
-				% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
-%    \begin{macrocode}
-				\csxdefall{autonum@##1Labeled}{\Roman{autonum@counter}}%
-			}{}%
-%    \end{macrocode}
-			% Call the old label command.
-%    \begin{macrocode}
-			\autonum@labelOld{##1}%
-		}%
-	}
-%    \end{macrocode}
+%\begin{macro}{\autonum@labelCommand}
 	% Amsmath regularly overwrites the \cmd{\label} command, so use \cmd{\label@in@display} instead of label, if \href{http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2005-11/msg00074.html}{amsmath is loaded}.
 %    \begin{macrocode}
 	\ifdef{\label@in@display}{%
-		\autonum@patchLabel{label@in@display}%
+		\newcommand{\autonum@labelCommand}{\label@in@display}%
 	}{%
-		\autonum@patchLabel{label}%
+		\newcommand{\autonum@labelCommand}{\label}%
 	}
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@patchReference}
-	% To patch a variably named reference command, generate an extra command.
-%    \begin{macrocode}
-	\newcommand{\autonum@patchReference}[1]{%
-		\letcs{\autonum@referenceOld}{#1}%
-		\csdef{#1}##1{%
-%    \end{macrocode}
-			% Mark label as used. As we can have a reference before and after the \cmd{\label} call, save it as an variable (for the current run) and in the aux file (for the next run). This saves one compilation run, although still up to three are needed to get everything right.
-%    \begin{macrocode}
-			\ifcsdef{autonum@##1Labeled}{%
-				\csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
-			}{}%
-%    \end{macrocode}
-			% Call the old reference command.
-%    \begin{macrocode}
-			\autonum@referenceOld{##1}%
-		}%
-	}
-%    \end{macrocode}
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
 %    \begin{macrocode}
 	\autonum@patchReference{ref}%
@@ -444,7 +462,6 @@ and the derived files           autonum.ins,
 		\autonum@patchReference{cref}%
 	}{}%
 %    \end{macrocode}
-%\end{macro}
 %    \begin{macrocode}
 }
 %    \end{macrocode}
