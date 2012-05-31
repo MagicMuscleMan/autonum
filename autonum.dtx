@@ -217,6 +217,7 @@ and the derived files           autonum.ins,
 %
 % \section{Implementation}
 % The basic idea is to write the usage of each label -- labeling and referencing -- into the aux file and save it as variable, so that the information is available in the current and in the next run. As the equation environment does not know anything about labels, a global linear equation counter is used to identify each equation. After the label information is connected to the counter information, each equation can check, if it is referenced or not.
+% TODO: (Überarbeiten:) Da ohne amsmath jetzt erst nach dem \label entschieden wird (\newline oder \endenvironment), ob das Tag gesetzt wird oder nicht, wird der Counter dann nicht mehr benötigt.
 
 %\begin{macro}{\csxdefaux}
 % This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
@@ -240,13 +241,6 @@ and the derived files           autonum.ins,
 	\csxdefaux{#1}{#2}%
 	\csxdef{#1}{#2}%
 }
-%    \end{macrocode}
-%\end{macro}
-
-%\begin{macro}{autonum@counter}
-% Use a counter to numerate all displayed equation environments linearly.
-%    \begin{macrocode}
-\newcounter{autonum@counter}
 %    \end{macrocode}
 %\end{macro}
 
@@ -297,7 +291,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 			\ignorespacesafterend
 		}%
-		\stepcounter{autonum@counter}%
+		% \stepcounter{autonum@counter}%
 	}%
 }
 %    \end{macrocode}
@@ -305,7 +299,6 @@ and the derived files           autonum.ins,
 
 %\begin{macro}{\autonum@changeEnvironment}
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
-% TODO: This code won't work without amsmath, so treat that case specially as in Version 0.1.
 %    \begin{macrocode}
 \newcommand{\autonum@changeEnvironment}[1]{
 	\renewenvironment{#1}{%
@@ -326,14 +319,19 @@ and the derived files           autonum.ins,
 % 	\renewcommand{\label}[1]{hallo ##1 o}
 % \show\label
 	}{%
-		\autonum@IfReferenced{\Roman{autonum@counter}}{%
+		% \autonum@IfReferenced{\Roman{autonum@counter}}{%
+%% 		\autonum@IfReferenced{autonum@currentLabel}{%
+ende
+		\autonum@IfReferenced{%
 		}{%
 			\notag
 		}%
 %    \end{macrocode}
 %    \begin{macrocode}
 		\csuse{autonum@end#1Old}%
-		\stepcounter{autonum@counter}%
+		% TODO: Das wird nicht benötigt, falls newcommand local arbeitet -> prüfen
+		% \undef{\autonum@currentLabel}%
+		%\stepcounter{autonum@counter}%
 	}%
 }
 %    \end{macrocode}
@@ -354,9 +352,15 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \newcommand{\autonum@patchedLabel}[1]{%
 %    \end{macrocode}
+	% TODO: Kommentar überarbeiten
 	% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
 %    \begin{macrocode}
-	\csxdefall{autonum@#1Labeled}{\Roman{autonum@counter}}%
+	\csxdefall{autonum@#1Labeled}{}%
+	\ifdef{\autonum@currentLabel}{%
+		\PackageError{autonum}{Two succeeding \string\label's detected.}{Did you forget a \string\\?}%
+	}{%
+		\def\autonum@currentLabel{#1}%
+	}
 %    \end{macrocode}
 	% Call the old label command.
 %    \begin{macrocode}
@@ -369,7 +373,7 @@ and the derived files           autonum.ins,
 % Patch the newline character, as this is the only change to add information to a line in a multi-line equation, which is not labeled.
 %    \begin{macrocode}
 \newcommand{\autonum@patchNewline}{%
-	\let\newlineOld\\%
+	\let\autonum@newlineOld\\%
 	\let\\\autonum@patchedNewline%
 }
 %    \end{macrocode}
@@ -379,13 +383,27 @@ and the derived files           autonum.ins,
 % This command holds the definition of the patched newline, so that it can simply be activated.
 %    \begin{macrocode}
 %%TODO:wenn das hier aktiv ist und ein align mit zwei labels verwendet wird, dann bekomme ich folgende Fehlermeldung:  Package amsmath Error: Multiple \label's: label $NAME_OF_FIRST_LABEL will be lost.
+%% TODO: Was hat es mit \math@cr auf sich?
 \newcommand{\autonum@patchedNewline}{%
-	\autonum@IfReferenced{\Roman{autonum@counter}}{%
+newline
+%% 	\autonum@IfReferenced{autonum@currentLabel}{%
+	\autonum@IfReferenced{%
 	}{%
 		\notag
 	}%
-	\newlineOld
-	\stepcounter{autonum@counter}%
+%    \end{macrocode}
+	% The current label has to be cleaned, as every line can be labeled separately in a multi-line equation. And the \cmd{\notag} command above should only be executed in labeled lines.
+%    \begin{macrocode}
+	\ifdef{\autonum@currentLabel}{%
+		\undef{\autonum@currentLabel}%
+	}{}
+	% TODO: Es ist noch nicht ganz klar, wo welcher Code hin muss und warum er gebraucht wird und was dann mit zwei Labeln passiert, aber das kann ich ja im Label-Befehl abfangen, weil da ja eh schon eine Variable für existiert
+% 			\gdef\df@label
+% 	\let\df@label\@empty
+	% TODO: durch \show konnte ich beweisen, dass die Folgende Zeile mir den \\-Befehl umdefiniert auf irgendwas von amsmath, was nicht mehr meinen Code aufruft
+	\autonum@newlineOld
+% 	\show\\
+	%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -393,8 +411,15 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@IfReferenced}
 % Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
 %    \begin{macrocode}
-\newcommand{\autonum@IfReferenced}[3]{%
-	\ifcsdef{autonum@#1Referenced}{#2}{#3}%
+\newcommand{\autonum@IfReferenced}[2]{%
+	% TODO: Kann das nicht vereinfacht werden?
+	\ifdef{\autonum@currentLabel}{
+		\edef\autonum@referenced{autonum@\csuse{autonum@currentLabel}Referenced}%
+		\expandafter\ifcsdef\expandafter{\autonum@referenced}{#1}{#2}%
+	}{%
+		#2%
+		\string#2
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -407,11 +432,18 @@ and the derived files           autonum.ins,
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
 %    \end{macrocode}
-		% Mark label as used if it had been used. As we can have a reference before and after the \cmd{\label} call, save it as an variable (for the current run) and in the aux file (for the next run). This saves one compilation run, although still up to three are needed to get everything right.
+		% Mark label as referenced. If the label is referenced after the \cmd{\label} call, the value of the label's counter is already knownsave it as an variable (for the current run) and in the aux file (for the next run). a reference before and used if it had been used or if it could get  This saves one compilation run, although still up to three are needed to get everything right.
+		% TODO: This code is not correct, as after correctly referencing in the first run, the reference is written to the aux file. In the second run, the aux file is read and thus the reference is not written to the aux file, so the third run behaves like the first run.
 %    \begin{macrocode}
-		\ifcsdef{autonum@##1Labeled}{%
-			\csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
-		}{}%
+% 		\ifcsundef{autonum@##1Referenced}{%
+			\csxdefall{autonum@##1Referenced}{a}%
+% 		}{%
+% 		}
+		% \ifcsdef{autonum@##1Labeled}{%
+			% \csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
+		% }{
+			% \xdef
+		% }%
 %    \end{macrocode}
 		% Call the old reference command.
 %    \begin{macrocode}
@@ -433,6 +465,15 @@ and the derived files           autonum.ins,
 		\autonum@patchEquationEnvironmentNoAmsmath%
 	}
 %    \end{macrocode}
+
+%\begin{macro}{autonum@counter}
+	% Use a counter to numerate all displayed equation environments linearly.
+%    \begin{macrocode}
+	\ifundef{\gather}{
+		\newcounter{autonum@counter}
+	}{}
+%    \end{macrocode}
+%\end{macro}
 
 	% As equation* is only available when using amsmath, define it otherwise, because it is needed in \cmd{\autonum@patchEnvironment}. Whether amsmath is used, is only known after the preamble.
 %    \begin{macrocode}
