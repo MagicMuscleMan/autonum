@@ -197,9 +197,13 @@ and the derived files           autonum.ins,
 %^^A \end{document}
 %
 %
-% \section{Compatibility and Load Order}
+% \section{Compatibility}
+% \subsection{Load Order}
 % TODO: Bezüglich amsmath überarbeiten
 % The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref.
+%
+% \subsection{Reference commands}
+% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@patchReference}\{\cmd{\NewReferenceCommand}\}.
 %
 % \section{Further Ideas}
 % \begin{itemize}
@@ -238,32 +242,47 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@newlineAlign}
-% This code is to get the newline code used in an align environment
+% This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
 %    \begin{macrocode}
 \AtBeginDocument{%
 %    \end{macrocode}
+	% This code is to get the newline code used in an align environment
 %    \begin{macrocode}
-	\ifdef{\align}{%
-		\begin{textblock}{1}[1,1](0,0)%
-			\begin{align}%
-				\global\let\autonum@labelAlign\label%
-				\global\let\autonum@newlineAlign\\%
-				% Use \cmd{\notag} to not increase the equation counter.
-				\notag%
-			\end{align}%
-		\end{textblock}%
-	}{}%
+	\begin{textblock}{1}[1,1](0,0)%
+		\begin{align}%
+			\global\let\autonum@labelAlign\label%
+			\global\let\autonum@newlineAlign\\%
+%    \end{macrocode}
+			% Use \cmd{\notag} to not increase the equation counter.
+%    \begin{macrocode}
+			\notag%
+		\end{align}%
+	\end{textblock}%
 %    \end{macrocode}
 
-	% All of amsmath's environments are redefined. Do not redefine environment before getting align's newline command above.
+	% All of amsmath's environments are redefined. Do not redefine environment before getting align's original label and newline commands.
 %    \begin{macrocode}
 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
+%    \end{macrocode}
+
+	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}, as they are useless know.
+	% TODO: Funktioniert noch nicht
+%    \begin{macrocode}
+	\let\[\align%
+	\let\]\endalign%
+%    \end{macrocode}
+
+	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
+%    \begin{macrocode}
+	\autonum@patchReference{ref}%
+	% TODO: cref scheint nicht mehr zu funktionieren
+	\ifdef{\cref}{%
+		\autonum@patchReference{cref}%
+	}{}%
 %    \end{macrocode}
 %    \begin{macrocode}
 }
 %    \end{macrocode}
-%\end{macro}
 
 %\begin{macro}{\autonum@patchEnvironment}
 % Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.
@@ -293,63 +312,52 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@changeEnvironment}
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
 %    \begin{macrocode}
-% TODO: aus etoolbox \AtBeginEnvironment und so benutzen
 \newcommand{\autonum@changeEnvironment}[1]{%
 	\renewenvironment{#1}{%
 %    \end{macrocode}
-		% Prepare the displayed equation environment by calling the old environment's begin command.
+		% Prepare the label and the newline commands and begin the displayed equation environment.
 %    \begin{macrocode}
-		\global\let\autonum@newlineNormal\\%
-		\global\let\autonum@labelNormal\\%
+		\autonum@saveSubcommands
 		\csuse{autonum@#1Old}%
-% \gdef\label##1{hallo o}
-%    \end{macrocode}
-		% Patch the label command, as some special data has to be saved with each usage.
-%    \begin{macrocode}
-% 		\autonum@patchLabel
-% 		\show\label
-		%
-% 		a
-		%
-% 		\global\let\autonum@labelOld\label%
-		\global\let\label\autonum@patchedLabel%
-%    \end{macrocode}
-		% In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten.
-%    \begin{macrocode}
-% 		\autonum@patchNewline
-		\global\let\\\autonum@patchedNewline%
-% \renewcommand{\df@label}[2]{lala}
-% 	\renewcommand{\label}[1]{hallo ##1 o}
-% \show\label
+		\autonum@patchSubcommands
 	}{%
-		% \autonum@IfReferenced{\Roman{autonum@counter}}{%
-%% 		\autonum@IfReferenced{autonum@currentLabel}{%
-		\autonum@IfReferenced{%
-		}{%
-			\notag%
-		}%
 %    \end{macrocode}
+		% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
 %    \begin{macrocode}
+		\autonum@possiblyHideNumber
 		\csuse{autonum@end#1Old}%
-% 		\autonum@unpatchNewline
-		% TODO: Das wird nicht benötigt, falls newcommand local arbeitet -> prüfen
-		% \undef{\autonum@currentLabel}%
-		%\stepcounter{autonum@counter}%
-		\global\let\label\autonum@labelNormal%
-		\global\let\\\autonum@newlineNormal%
+		\autonum@restoreSubcommands
 	}%
 }
 %    \end{macrocode}
 %\end{macro}
 
-% TODO: Warum so großer Zeilenabstand?
-
-%\begin{macro}{\autonum@patchLabel}
-	% To do the patching of a variably named label command, generate an extra command for this.
+%\begin{macro}{\autonum@saveSubcommands}
+% Save the current newline and label commands. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
 %    \begin{macrocode}
-\newcommand{\autonum@patchLabel}{%
-	\let\autonum@labelOld\label%
-	\let\label\autonum@patchedLabel%
+\newcommand{\autonum@saveSubcommands}{%
+	\global\let\autonum@newlineNormal\\%
+	\global\let\autonum@labelNormal\label%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchSubcommands}
+% Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too.
+%    \begin{macrocode}
+\newcommand{\autonum@patchSubcommands}{%
+	\global\let\label\autonum@patchedLabel%
+	\global\let\\\autonum@patchedNewline%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@restoreSubcommands}
+% Restore the newline and label commands.
+%    \begin{macrocode}
+\newcommand{\autonum@restoreSubcommands}{%
+	\global\let\label\autonum@labelNormal%
+	\global\let\\\autonum@newlineNormal%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -405,56 +413,29 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@patchedNewline}
 % This command holds the definition of the patched newline, so that it can simply be activated.
 %    \begin{macrocode}
-\global\newcommand{\autonum@patchedNewline}{%
+\newcommand{\autonum@patchedNewline}{%
 % \text{|newline|}
-%% 	\autonum@IfReferenced{autonum@currentLabel}{%
-	\autonum@IfReferenced{%
-	}{%
-		\notag
-	}%
-	% TODO: Es ist noch nicht ganz klar, wo welcher Code hin muss und warum er gebraucht wird und was dann mit zwei Labeln hintereinander passiert, aber das kann ich ja im Label-Befehl abfangen, da eine entsprechende Variable bereits existiert
-% 			\gdef\df@label
-% 	\let\df@label\@empty
-	% Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \show\\ before and after the call to amsmath's newline command). As amsmath behaves like a virus here, the patched newline function is only called for the first newline. After the first call, the amsmath's hijacked newline is used directly without giving us a chance to do something useful. To correct this behaviour, the newline command has to be patched again. Unfortunately, \let cannot be used to save the current command, because the copy generated by \let is deleted by amsmath (WTF?).
-	% TODO: sicherstellen, dass wieder mein Befehl aufgerufen wird.
-% 	\let\autonum@newlineNew\\
-% 	\show\\
-% \message{lebe noch}
-% 	\autonum@newlineOld
-% 	\show\autonum@newlineNew
-% 	\let\\\autonum@newlineNew
-% 	1\begingroup
-% 	2\autonum@newlineOld
-%
-% 	\endgroup
-% 	\long\gdef\\{\autonum@patchedNewline}
-% 	\show\\
-% 	\\
-% 	\autonum@unpatchNewline
-% 	\show\\
-% 	\\
-% 	\autonum@patchNewline
+	\autonum@possiblyHideNumber
+	% TODO: Kommentar durchlesen Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \show\\ before and after the call to amsmath's newline command). As amsmath behaves like a virus here, the patched newline function is only called for the first newline. After the first call, the amsmath's hijacked newline is used directly without giving us a chance to do something useful. To correct this behaviour, the newline command has to be patched again. Unfortunately, \let cannot be used to save the current command, because the copy generated by \let is deleted by amsmath (WTF?).
 	\autonum@newlineAlign
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@IfReferenced}
-% Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
+%\begin{macro}{\autonum@possiblyHideNumber}
+% TODO: Text überarbeiten, Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
 %    \begin{macrocode}
-\newcommand{\autonum@IfReferenced}[2]{%
+\newcommand{\autonum@possiblyHideNumber}{
 	% TODO: Kann das nicht vereinfacht werden?
 	\ifdef{\autonum@currentLabel}{%
 		\edef\autonum@referenced{autonum@\csuse{autonum@currentLabel}Referenced}%
-		\expandafter\ifcsdef\expandafter{\autonum@referenced}{#1}{#2}%
+		\expandafter\ifcsdef\expandafter{\autonum@referenced}{}{\notag}%
 %    \end{macrocode}
 		% The current label has to be cleaned, as every line can be labeled separately in a multi-line equation. And the \cmd{\notag} command above should only be executed in labeled lines.% TODO: Kommentar verbessern
 %    \begin{macrocode}
-		\ifdef{\autonum@currentLabel}{%
-			\undef{\autonum@currentLabel}%
-		}{}%
+		\undef{\autonum@currentLabel}%
 	}{%
-		#2%
+		\notag%
 	}%
 }
 %    \end{macrocode}
@@ -488,30 +469,6 @@ and the derived files           autonum.ins,
 }
 %    \end{macrocode}
 %\end{macro}
-
-% This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
-%    \begin{macrocode}
-\AfterPreamble{
-%    \end{macrocode}
-
-	% \cmd{\[} and \cmd{\]} could be defined as \cmd{\align} per default
-%    \begin{macrocode}
-% 	\ifcsundef{equation*}{%
-% 		\newenvironment{equation*}{\[}{\]}%
-% 	}{}
-%    \end{macrocode}
-
-	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
-	% TODO: In der Dokumentaiton oben darauf eingehen, dass man let und ref benutzen kann und darauf eingehen, dass man diesen Befehl hier verwenden kann
-%    \begin{macrocode}
-	\autonum@patchReference{ref}%
-	\ifdef{\cref}{%
-		\autonum@patchReference{cref}%
-	}{}%
-%    \end{macrocode}
-%    \begin{macrocode}
-}
-%    \end{macrocode}
 
 %\StopEventually{^^A
 %  \PrintChanges
