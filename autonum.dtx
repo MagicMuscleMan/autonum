@@ -218,10 +218,10 @@ and the derived files           autonum.ins,
 % TODO: (Überarbeiten:) Da jetzt erst nach dem \label entschieden wird (\newline oder \endenvironment), ob das Tag gesetzt wird oder nicht, wird der Counter dann nicht mehr benötigt.
 
 %\begin{macro}{\csxdefaux}
-% This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
+% This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. This command would be a candidate for inclusion into etoolbox. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
 % Usage: \cmd{\csxdefaux{csname}{replacement}}
 %    \begin{macrocode}
-\newcommand{\csxdefaux}[2]{%
+\def\csxdefaux#1#2{%
 %    \end{macrocode}
 	% The expandafter commands are used to first expand the \cmd{\csname}-\cmd{\endcsname}. Then there is a command definition left, where the command and its replacement (which can also be a command) are protected by \cmd{\string} to create the command in the next run (when the aux file is read) and not in the current run (when the aux file is written).
 %    \begin{macrocode}
@@ -233,11 +233,22 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\csxdefall}
-% This command simply combines the commands \cmd{\csxdef} and \cmd{\csxdefaux}.
+% This command simply combines the commands \cmd{\csxdef} and \cmd{\csxdefaux}. This command would be a candidate for inclusion into etoolbox.
 %    \begin{macrocode}
-\newcommand{\csxdefall}[2]{%
+\def\csxdefall#1#2{%
 	\csxdefaux{#1}{#2}%
 	\csxdef{#1}{#2}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\ifcsedef}
+% This command is similar to the \cmd{\ifcsdef} test from the package etoolbox, but the command sequence gets fully expanded before it is evaluated.. This command would be a candidate for inclusion into etoolbox.
+%    \begin{macrocode}
+\def\ifcsedef#1#2#3{%
+	\edef\autonum@ifcsedefTemp{#1}%
+	\expandafter\ifcsdef\expandafter{\autonum@ifcsedefTemp}{#2}{#3}%
+	\undef{\autonum@ifcsedefTemp}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -246,26 +257,16 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \AtBeginDocument{%
 %    \end{macrocode}
-	% This code is to get the newline code used in an align environment
+	% All of amsmath's environments are redefined.
 %    \begin{macrocode}
-	\begin{textblock}{1}[1,1](0,0)%
-		\begin{align}%
-			\global\let\autonum@labelAlign\label%
-			\global\let\autonum@newlineAlign\\%
-%    \end{macrocode}
-			% Use \cmd{\notag} to not increase the equation counter.
-%    \begin{macrocode}
-			\notag%
-		\end{align}%
-	\end{textblock}%
+	% TODO: alignat funktioniert nicht
+	% TODO: flalign funktioniert nicht
+% 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
+% 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign}
+	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align}
 %    \end{macrocode}
 
-	% All of amsmath's environments are redefined. Do not redefine environment before getting align's original label and newline commands.
-%    \begin{macrocode}
-	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
-%    \end{macrocode}
-
-	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}, as they are useless know.
+	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old commands capabilities are basicly a subset of the new capabilities.
 	% TODO: Funktioniert noch nicht
 %    \begin{macrocode}
 	\let\[\align%
@@ -285,19 +286,38 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 
 %\begin{macro}{\autonum@patchEnvironment}
-% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.
+% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.  Do not redefine environment before getting the original label and newline commands.
 %    \begin{macrocode}
-\newcommand{\autonum@patchEnvironment}[1]{
+\def\autonum@patchEnvironment#1{
+	\autonum@saveEnvironmentSubcommands{#1}%
 	\autonum@renameEnvironment{#1}%
 	\autonum@changeEnvironment{#1}%
+	\autonum@generatePatchedLabel{#1}%
+	\autonum@generatePatchedNewline{#1}%
 }
 %    \end{macrocode}
 %\end{macro}
 
+\def\autonum@saveEnvironmentSubcommands#1{%
+	% This code is to get the newline code used in an mathematic display environment
+%    \begin{macrocode}
+	\begin{textblock}{1}[1,1](0,0)%
+		\begin{#1}%
+			\global\cslet{autonum@label#1}{\label}%
+			\global\cslet{autonum@newline#1}\\%
+%    \end{macrocode}
+			% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would have the number 2).
+%    \begin{macrocode}
+			\notag%
+		\end{#1}%
+	\end{textblock}%
+%    \end{macrocode}
+}
+
 %\begin{macro}{\autonum@renameEnvironment}
 % Rename the old environment to be accessible with an appended + by saving the original environment using a different name.
 %    \begin{macrocode}
-\newcommand{\autonum@renameEnvironment}[1]{
+\def\autonum@renameEnvironment#1{%
 	\csletcs{autonum@#1Old}{#1}%
 	\csletcs{autonum@end#1Old}{end#1}%
 	\newenvironment{#1+}{%
@@ -312,14 +332,14 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@changeEnvironment}
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
 %    \begin{macrocode}
-\newcommand{\autonum@changeEnvironment}[1]{%
+\def\autonum@changeEnvironment#1{%
 	\renewenvironment{#1}{%
 %    \end{macrocode}
 		% Prepare the label and the newline commands and begin the displayed equation environment.
 %    \begin{macrocode}
 		\autonum@saveSubcommands
 		\csuse{autonum@#1Old}%
-		\autonum@patchSubcommands
+		\autonum@patchSubcommands{#1}%
 	}{%
 %    \end{macrocode}
 		% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
@@ -335,9 +355,9 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@saveSubcommands}
 % Save the current newline and label commands. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
 %    \begin{macrocode}
-\newcommand{\autonum@saveSubcommands}{%
-	\global\let\autonum@newlineNormal\\%
+\def\autonum@saveSubcommands{%
 	\global\let\autonum@labelNormal\label%
+	\global\let\autonum@newlineNormal\\%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -345,9 +365,9 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@patchSubcommands}
 % Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too.
 %    \begin{macrocode}
-\newcommand{\autonum@patchSubcommands}{%
-	\global\let\label\autonum@patchedLabel%
-	\global\let\\\autonum@patchedNewline%
+\def\autonum@patchSubcommands#1{%
+	\global\letcs{\label}{autonum@patched#1Label}%
+	\global\letcs{\\}{autonum@patched#1Newline}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -355,69 +375,48 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@restoreSubcommands}
 % Restore the newline and label commands.
 %    \begin{macrocode}
-\newcommand{\autonum@restoreSubcommands}{%
+\def\autonum@restoreSubcommands{%
 	\global\let\label\autonum@labelNormal%
 	\global\let\\\autonum@newlineNormal%
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\autonum@patchedLabel}
+%\begin{macro}{\autonum@generatePatchedLabel}
 % Use an extra command to patch the used label command for efficiency.
 %    \begin{macrocode}
-% \newcommand{\autonum@patchedLabel}[1]{%
-\gdef\autonum@patchedLabel#1{%
-% \text{|label|}
+\def\autonum@generatePatchedLabel#1{%
+	% TODO: Muss das global sein?
+	\csgdef{autonum@patched#1Label}##1{%
+	%    \end{macrocode}
+		% TODO: Kommentar überarbeiten
+		% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+	%    \begin{macrocode}
+		\csxdefall{autonum@##1Labeled}{}%
+		\ifdef{\autonum@currentLabel}{%
+			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
+		}{%
+			\def\autonum@currentLabel{##1}%
+		}%
+	%    \end{macrocode}
+		% The environment's original label command is called to do the real labeling. As it checks for erroneous succeeding labels using \cmd{df@label}, this variable has to be emptied before every call.
+	%    \begin{macrocode}
+		\global\let\df@label\@empty%
+		\csuse{autonum@label#1}{##1}%
+	}%
+}
 %    \end{macrocode}
-	% TODO: Kommentar überarbeiten
-	% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+%\end{macro}
+
+%\begin{macro}{\autonum@generatePatchedNewline}
+% This command generated patched newline for displayed math environments, so that they can simply be activated.
 %    \begin{macrocode}
-	\csxdefall{autonum@#1Labeled}{}%
-	\ifdef{\autonum@currentLabel}{%
-		\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
-	}{%
-		\def\autonum@currentLabel{#1}%
+\def\autonum@generatePatchedNewline#1{%
+	\csdef{autonum@patched#1Newline}{%
+		\autonum@possiblyHideNumber
+		% TODO: Kommentar durchlesen Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \show\\ before and after the call to amsmath's newline command). As amsmath behaves like a virus here, the patched newline function is only called for the first newline. After the first call, the amsmath's hijacked newline is used directly without giving us a chance to do something useful. To correct this behaviour, the newline command has to be patched again. Unfortunately, \let cannot be used to save the current command, because the copy generated by \let is deleted by amsmath (WTF?).
+		\csuse{autonum@newline#1}%
 	}
-%    \end{macrocode}
-	% The environment's original label command is called to do the real labeling. As it checks for erroneous succeeding labels using \cmd{df@label}, this variable has to be emptied before every call.
-%    \begin{macrocode}
-	\global\let\df@label\@empty
-	\autonum@labelAlign{#1}
-% 	l
-}
-%    \end{macrocode}
-%\end{macro}
-
-%\begin{macro}{\autonum@patchNewline}
-% Patch the newline character, as this is the only change to add information to a line in a multi-line equation, which is not labeled.
-%    \begin{macrocode}
-\newcommand{\autonum@patchNewline}{%
-% 	\global\let\autonum@newlineOld\\%
-% 	\global\let\\\autonum@patchedNewline%
-	\let\autonum@newlineOld\\%
-	\let\\\autonum@patchedNewline%
-}
-%    \end{macrocode}
-%\end{macro}
-
-%\begin{macro}{\autonum@patchNewline}
-% Revert the patching, as newline outside of environment should not be changed.
-%    \begin{macrocode}
-\newcommand{\autonum@unpatchNewline}{%
-	\let\\\autonum@newlineOld%
-	\undef{\autonum@newlineOld}%
-}
-%    \end{macrocode}
-%\end{macro}
-
-%\begin{macro}{\autonum@patchedNewline}
-% This command holds the definition of the patched newline, so that it can simply be activated.
-%    \begin{macrocode}
-\newcommand{\autonum@patchedNewline}{%
-% \text{|newline|}
-	\autonum@possiblyHideNumber
-	% TODO: Kommentar durchlesen Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \show\\ before and after the call to amsmath's newline command). As amsmath behaves like a virus here, the patched newline function is only called for the first newline. After the first call, the amsmath's hijacked newline is used directly without giving us a chance to do something useful. To correct this behaviour, the newline command has to be patched again. Unfortunately, \let cannot be used to save the current command, because the copy generated by \let is deleted by amsmath (WTF?).
-	\autonum@newlineAlign
 }
 %    \end{macrocode}
 %\end{macro}
@@ -425,11 +424,12 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@possiblyHideNumber}
 % TODO: Text überarbeiten, Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
 %    \begin{macrocode}
-\newcommand{\autonum@possiblyHideNumber}{
-	% TODO: Kann das nicht vereinfacht werden?
+\def\autonum@possiblyHideNumber{
 	\ifdef{\autonum@currentLabel}{%
-		\edef\autonum@referenced{autonum@\csuse{autonum@currentLabel}Referenced}%
-		\expandafter\ifcsdef\expandafter{\autonum@referenced}{}{\notag}%
+		\ifcsedef{autonum@\csuse{autonum@currentLabel}Referenced}{%
+		}{%
+			\notag%
+		}
 %    \end{macrocode}
 		% The current label has to be cleaned, as every line can be labeled separately in a multi-line equation. And the \cmd{\notag} command above should only be executed in labeled lines.% TODO: Kommentar verbessern
 %    \begin{macrocode}
@@ -445,7 +445,7 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@patchReference}
 % To patch a variably named reference command, generate an extra command. The patch logic is different to patching the label command, as the references have to be patched only once, so optimizing for speed is counterproductive.
 %    \begin{macrocode}
-\newcommand{\autonum@patchReference}[1]{%
+\def\autonum@patchReference#1{%
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
 %    \end{macrocode}
