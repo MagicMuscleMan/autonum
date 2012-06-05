@@ -258,14 +258,14 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \AtBeginDocument{%
 %    \end{macrocode}
-	% All of amsmath's environments are redefined.
+	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation.
 %    \begin{macrocode}
-	% TODO: alignat funktioniert nicht
-	% TODO: flalign funktioniert nicht
-% 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
-% 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign}
-	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align}
-% 	\autonum@patchEnvironment{alignat}
+	% TODO: Kompilierte Doku durchlesen
+	% TODO: Rausschreiben, wie man \\ patchen kann
+	% TODO: test-autonum auf neuesten Stand bringen
+	% TODO: In Diss testen und dort auf \[ umsteigen
+	\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}
+	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,align}
 %    \end{macrocode}
 
 	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old command's capabilities are basically a subset of the new capabilities.
@@ -285,10 +285,18 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 
 %\begin{macro}{\autonum@patchEnvironment}
-% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.  Do not redefine environment before getting the original label and newline commands.
+% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.  Do not redefine environment before getting the original label and newline commands. Use center as the default parameter, as a center environment is a neutral element regarding the subcommands' definitions.
 %    \begin{macrocode}
-\def\autonum@patchEnvironment#1{
-	\autonum@saveEnvironmentSubcommands{#1}%
+% \def\autonum@patchEnvironment#1{
+\def\autonum@patchFullEnvironment#1{%
+	\autonum@saveEnvironmentSubcommands{#1}{center}%
+	\autonum@patchEnvironmentHelper{#1}%
+}
+\def\autonum@patchBlockEnvironment#1{%
+	\autonum@saveEnvironmentSubcommands{#1}{equation*}%
+	\autonum@patchEnvironmentHelper{#1}%
+}
+\def\autonum@patchEnvironmentHelper#1{%
 	\autonum@renameEnvironment{#1}%
 	\autonum@changeEnvironment{#1}%
 	\autonum@generatePatchedLabel{#1}%
@@ -298,21 +306,23 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@saveEnvironmentSubcommands}
-% This code is to save the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work.
+% This code is to save the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work. Allow for two arguments, to enable putting the alignment building blocks into an equation environment (see amsmath documentation).
 %    \begin{macrocode}
-\def\autonum@saveEnvironmentSubcommands#1{%
+\def\autonum@saveEnvironmentSubcommands#1#2{%
 	\begin{textblock}{1}[1,1](0,0)%
-		\begin{#1}%
+		\begin{#2}
+			\begin{#1}%
 %    \end{macrocode}
-			% Using global here is necessary, to get the information out of the environment.
+				% Using global here is necessary, to get the information out of the environment.
 %    \begin{macrocode}
-			\global\cslet{autonum@label#1}{\label}%
-			\global\cslet{autonum@newline#1}\\%
+				\global\cslet{autonum@label#1}{\label}%
+				\global\cslet{autonum@newline#1}\\%
 %    \end{macrocode}
-			% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would have the number 2).
+				% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would have the number 2).
 %    \begin{macrocode}
-			\notag%
-		\end{#1}%
+				\notag%
+			\end{#1}%
+		\end{#2}
 	\end{textblock}%
 }
 %    \end{macrocode}
