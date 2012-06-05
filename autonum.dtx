@@ -152,13 +152,13 @@ and the derived files           autonum.ins,
 % 	2 = 2\quad(\text{equation with label, not referenced})
 % \end{equation*}
 %
-% \autonum@equationOld\label{alreadyReferenced}
-% 	3 = 3\quad(\text{equation with label, already referenced})
-% \autonum@endequationOld
+%^^A \autonum@equationOld\label{alreadyReferenced}
+%^^A 	3 = 3\quad(\text{equation with label, already referenced})
+%^^A \autonum@endequationOld
 %
-% \autonum@equationOld\label{referencedLater}
-% 	4 = 4\quad(\text{equation with label, referenced later})
-% \autonum@endequationOld
+%^^A \autonum@equationOld\label{referencedLater}
+%^^A 	4 = 4\quad(\text{equation with label, referenced later})
+%^^A \autonum@endequationOld
 % \makeatother
 % Now let's reference the fourth equation: \ref{referencedLater}. The first and the second equations do not get a number, as they are not referenced.
 %
@@ -203,19 +203,21 @@ and the derived files           autonum.ins,
 % The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref.
 %
 % \subsection{Reference commands}
-% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@patchReference}\{\cmd{\NewReferenceCommand}\}.
+% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
 %
 % \section{Further Ideas}
 % \begin{itemize}
 % \item A warning could be printed, if another compile is necessary.
 % \item A similar approch could be used for figure and table environments. There, a warning could be printed, if an environment is not referenced.
 % \item Instead of "+" a "*" could be used.
-% \item The starred forms of the environments could be undefined with \csundef{equation*} and \csundef{endequation*} (but change the code before).
+% \item The starred forms of the environments could be undefined with \csundef{equation*} and \csundef{endequation*}.
+% \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
 % \end{itemize}
 %
 % \section{Implementation}
-% The basic idea is to write the usage of each label -- labeling and referencing -- into the aux file and save it as variable, so that the information is available in the current and in the next run. As the equation environment does not know anything about labels, a global linear equation counter is used to identify each equation. After the label information is connected to the counter information, each equation can check, if it is referenced or not.
-% TODO: (Überarbeiten:) Da jetzt erst nach dem \label entschieden wird (\newline oder \endenvironment), ob das Tag gesetzt wird oder nicht, wird der Counter dann nicht mehr benötigt.
+% The basic idea is to write into the aux file and save a variable whenever a label is referenced, so that the information is available in the current and in the next run. The label information is passed from the label command to the newline command. The newline command uses the label and the reference information to possibly add a \cmd{\notag} command, deciding if it is referenced or not.
+%
+% Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \cmd{\show}\cmd{\\} before and after the call to amsmath's newline command) when using local definitions. As amsmath behaves like a virus then, the patched newline function is only called for the first newline. After the first call, amsmath's hijacked newline is used directly without giving a chance to do something useful. To correct this behaviour, the newline command would need to be patched again. Unfortunately, \cmd{\let} cannot be used to save the current command, because the copy generated by \cmd{\let} is deleted by amsmath (WTF?). To avoid all this, some global definitions are used.
 
 %\begin{macro}{\csxdefaux}
 % This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. This command would be a candidate for inclusion into etoolbox. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
@@ -275,10 +277,10 @@ and the derived files           autonum.ins,
 
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
 %    \begin{macrocode}
-	\autonum@patchReference{ref}%
+	\autonum@generatePatchedReference{ref}%
 	% TODO: cref scheint nicht mehr zu funktionieren
 	\ifdef{\cref}{%
-		\autonum@patchReference{cref}%
+		\autonum@generatePatchedReference{cref}%
 	}{}%
 %    \end{macrocode}
 %    \begin{macrocode}
@@ -389,10 +391,8 @@ and the derived files           autonum.ins,
 	% TODO: Muss das global sein?
 	\csgdef{autonum@patched#1Label}##1{%
 	%    \end{macrocode}
-		% TODO: Kommentar überarbeiten
-		% Provide a way to get the current counter value when a reference is used, as then only the label is available. Also defining the command saves one compilation run, although still up to three are needed to get everything right.
+		% The labeling infomation is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 	%    \begin{macrocode}
-		\csxdefall{autonum@##1Labeled}{}%
 		\ifdef{\autonum@currentLabel}{%
 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
 		}{%
@@ -414,7 +414,6 @@ and the derived files           autonum.ins,
 \def\autonum@generatePatchedNewline#1{%
 	\csdef{autonum@patched#1Newline}{%
 		\autonum@possiblyHideNumber
-		% TODO: Kommentar durchlesen Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \show\\ before and after the call to amsmath's newline command). As amsmath behaves like a virus here, the patched newline function is only called for the first newline. After the first call, the amsmath's hijacked newline is used directly without giving us a chance to do something useful. To correct this behaviour, the newline command has to be patched again. Unfortunately, \let cannot be used to save the current command, because the copy generated by \let is deleted by amsmath (WTF?).
 		\csuse{autonum@newline#1}%
 	}
 }
@@ -422,7 +421,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@possiblyHideNumber}
-% TODO: Text überarbeiten, Add a new if condition expecting a label. If the label is referenced, the second argument is expanded, otherwise the third one.
+% Define this command, which can hide the current line's number if the label is not referenced.
 %    \begin{macrocode}
 \def\autonum@possiblyHideNumber{
 	\ifdef{\autonum@currentLabel}{%
@@ -431,9 +430,8 @@ and the derived files           autonum.ins,
 			\notag%
 		}
 %    \end{macrocode}
-		% The current label has to be cleaned, as every line can be labeled separately in a multi-line equation. And the \cmd{\notag} command above should only be executed in labeled lines.% TODO: Kommentar verbessern
+		% The current label does not have to be cleaned, as every line is a separate cell \href{http://tex.stackexchange.com/q/58190,}{defining a local group} in an displayed math environment.
 %    \begin{macrocode}
-		\undef{\autonum@currentLabel}%
 	}{%
 		\notag%
 	}%
@@ -442,25 +440,16 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 
-%\begin{macro}{\autonum@patchReference}
-% To patch a variably named reference command, generate an extra command. The patch logic is different to patching the label command, as the references have to be patched only once, so optimizing for speed is counterproductive.
+%\begin{macro}{\autonum@generatePatchedReference}
+% This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
 %    \begin{macrocode}
-\def\autonum@patchReference#1{%
+\def\autonum@generatePatchedReference#1{%
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
 %    \end{macrocode}
-		% Mark label as referenced. If the label is referenced after the \cmd{\label} call, the value of the label's counter is already knownsave it as an variable (for the current run) and in the aux file (for the next run). a reference before and used if it had been used or if it could get  This saves one compilation run, although still up to three are needed to get everything right.
-		% TODO: This code is not correct, as after correctly referencing in the first run, the reference is written to the aux file. In the second run, the aux file is read and thus the reference is not written to the aux file, so the third run behaves like the first run.
+		% Mark label as referenced. The reference information is stored into a variable (for the current run) and into the aux file (for the next run), so it does not matter if the reference is used before or after the definition of the label. Saving into a variable saves one compilation run, although still up to three are needed to get everything right.
 %    \begin{macrocode}
-% 		\ifcsundef{autonum@##1Referenced}{%
-			\csxdefall{autonum@##1Referenced}{}%
-% 		}{%
-% 		}
-		% \ifcsdef{autonum@##1Labeled}{%
-			% \csxdefall{autonum@\csuse{autonum@##1Labeled}Referenced}{}%
-		% }{
-			% \xdef
-		% }%
+		\csxdefall{autonum@##1Referenced}{}%
 %    \end{macrocode}
 		% Call the old reference command.
 %    \begin{macrocode}
