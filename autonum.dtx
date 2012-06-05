@@ -199,8 +199,7 @@ and the derived files           autonum.ins,
 %
 % \section{Compatibility}
 % \subsection{Load Order}
-% TODO: Bezüglich amsmath überarbeiten
-% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. To use it with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref.
+% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. Normally amsmath is automatically loaded to make use of the more advances math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref. The support of autonum without amsmath has been discontinued, but please contact the author if you are interested in using autonum without amsmath.
 %
 % \subsection{Reference commands}
 % As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
@@ -266,19 +265,17 @@ and the derived files           autonum.ins,
 % 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign,alignat}
 % 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align,flalign}
 	\forcsvlist{\autonum@patchEnvironment}{equation,gather,multline,align}
+% 	\autonum@patchEnvironment{alignat}
 %    \end{macrocode}
 
-	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old commands capabilities are basicly a subset of the new capabilities.
-	% TODO: Funktioniert noch nicht
+	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old command's capabilities are basically a subset of the new capabilities.
 %    \begin{macrocode}
-	\let\[\align%
-	\let\]\endalign%
+	\def\[#1\]{\begin{align}#1\end{align}}
 %    \end{macrocode}
 
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
 %    \begin{macrocode}
 	\autonum@generatePatchedReference{ref}%
-	% TODO: cref scheint nicht mehr zu funktionieren
 	\ifdef{\cref}{%
 		\autonum@generatePatchedReference{cref}%
 	}{}%
