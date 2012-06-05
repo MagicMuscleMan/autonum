@@ -300,11 +300,15 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-\def\autonum@saveEnvironmentSubcommands#1{%
-	% This code is to get the newline code used in an mathematic display environment
+%\begin{macro}{\autonum@saveEnvironmentSubcommands}
+% This code is to save the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work.
 %    \begin{macrocode}
+\def\autonum@saveEnvironmentSubcommands#1{%
 	\begin{textblock}{1}[1,1](0,0)%
 		\begin{#1}%
+%    \end{macrocode}
+			% Using global here is necessary, to get the information out of the environment.
+%    \begin{macrocode}
 			\global\cslet{autonum@label#1}{\label}%
 			\global\cslet{autonum@newline#1}\\%
 %    \end{macrocode}
@@ -313,8 +317,9 @@ and the derived files           autonum.ins,
 			\notag%
 		\end{#1}%
 	\end{textblock}%
-%    \end{macrocode}
 }
+%    \end{macrocode}
+%\end{macro}
 
 %\begin{macro}{\autonum@renameEnvironment}
 % Rename the old environment to be accessible with an appended + by saving the original environment using a different name.
@@ -355,17 +360,17 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@saveSubcommands}
-% Save the current newline and label commands. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
+% Save the current newline and label commands.
 %    \begin{macrocode}
 \def\autonum@saveSubcommands{%
-	\global\let\autonum@labelNormal\label%
-	\global\let\autonum@newlineNormal\\%
+	\let\autonum@labelNormal\label%
+	\let\autonum@newlineNormal\\%
 }
 %    \end{macrocode}
 %\end{macro}
 
 %\begin{macro}{\autonum@patchSubcommands}
-% Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too.
+% Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
 %    \begin{macrocode}
 \def\autonum@patchSubcommands#1{%
 	\global\letcs{\label}{autonum@patched#1Label}%
@@ -375,7 +380,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@restoreSubcommands}
-% Restore the newline and label commands.
+% Restore the newline and label commands. This must be global, as it had been overwritten globally in \cmd{\autonum@patchSubcommands}.
 %    \begin{macrocode}
 \def\autonum@restoreSubcommands{%
 	\global\let\label\autonum@labelNormal%
@@ -388,8 +393,7 @@ and the derived files           autonum.ins,
 % Use an extra command to patch the used label command for efficiency.
 %    \begin{macrocode}
 \def\autonum@generatePatchedLabel#1{%
-	% TODO: Muss das global sein?
-	\csgdef{autonum@patched#1Label}##1{%
+	\csdef{autonum@patched#1Label}##1{%
 	%    \end{macrocode}
 		% The labeling infomation is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 	%    \begin{macrocode}
@@ -401,7 +405,7 @@ and the derived files           autonum.ins,
 	%    \end{macrocode}
 		% The environment's original label command is called to do the real labeling. As it checks for erroneous succeeding labels using \cmd{df@label}, this variable has to be emptied before every call.
 	%    \begin{macrocode}
-		\global\let\df@label\@empty%
+		\let\df@label\@empty%
 		\csuse{autonum@label#1}{##1}%
 	}%
 }
@@ -409,7 +413,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@generatePatchedNewline}
-% This command generated patched newline for displayed math environments, so that they can simply be activated.
+% This command generates patched newline commands for displayed math environments, so that they can simply be activated when needed.
 %    \begin{macrocode}
 \def\autonum@generatePatchedNewline#1{%
 	\csdef{autonum@patched#1Newline}{%
@@ -438,7 +442,6 @@ and the derived files           autonum.ins,
 }
 %    \end{macrocode}
 %\end{macro}
-
 
 %\begin{macro}{\autonum@generatePatchedReference}
 % This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
