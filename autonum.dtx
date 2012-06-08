@@ -184,7 +184,7 @@ and the derived files           autonum.ins,
 %
 % \begin{macro}{\[ et al.}
 % Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{equation}, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
-% As the commands \cmd{\[} and \cmd{\]} are now useless, they are redefined to the new \texttt{align} environment. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one. But the new one inherits all the multiline and alignment capabilities from align and thus is recommended as default while writing.
+% As the commands \cmd{\[} and \cmd{\]} are now useless, they are redefined to the new \texttt{align} environment. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one. But the new one inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing.
 % \end{macro}
 %
 %\begin{macro}{equation+}
@@ -266,7 +266,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation.
 %    \begin{macrocode}
-	% TODO: Problem mit flalign lösen
+	% TODO: Problem mit multline lösen
 	% TODO: test-autonum auf neuesten Stand bringen -> test-autonum.tex ggf. noch in ctanify aufnehmen
 	% TODO: Rausschreiben, wie man \\ patchen kann
 	% TODO: In Diss testen und dort auf \[ umsteigen
@@ -389,8 +389,18 @@ and the derived files           autonum.ins,
 % Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
 %    \begin{macrocode}
 \def\autonum@patchSubcommands#1{%
+	\ifstrequal{#1}{multline}{%
+%    \end{macrocode}
+		% The previously saved label command in autonum@labelmultline seems to be deleted. Thus renew it.
+%    \begin{macrocode}
+		\global\cslet{autonum@label#1}{\label}%
+	}{%
+%    \end{macrocode}
+		% Do not patch the newline command in a multline environment, as only the last line may get a \cmd{\notag} command, as all lines basically build one equation (see also amsmath's documentation, section 3.3).
+%    \begin{macrocode}
+	 	\global\letcs{\\}{autonum@patched#1Newline}%
+	}
 	\global\letcs{\label}{autonum@patched#1Label}%
-	\global\letcs{\\}{autonum@patched#1Newline}%
 }
 %    \end{macrocode}
 %\end{macro}
