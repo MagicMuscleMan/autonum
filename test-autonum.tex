@@ -8,59 +8,74 @@
 \begin{document}
 	\section*{Tests}
 	\begin{itemize}
-		\item Placing the number in long equations \ref{long}
-			\begin{equation}\label{long}
-				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
+		\item Having a referenced equation with reference before \ref{referenceBefore}
+			\begin{equation}\label{referenceBefore}
+				d - d = 0
 			\end{equation}
-		\item Having a unlabeled equation
+		\item Having a referenced equation with reference after
+			\begin{equation}\label{referenceAfter}
+				c^2 = c c
+			\end{equation}
+			\ref{referenceAfter}
+		\item Having an unlabeled equation
 			\begin{equation}
 				a^2 + b^2 = c^2
 			\end{equation}
 		\item Having a labeled, but unreferenced equation
 			\begin{equation}\label{unreferenced}
-				c
+				\sqrt{a}
 			\end{equation}
-		\item Having a referenced equation with reference before \ref{referenceBefore}
-			\begin{equation}\label{referenceBefore}
-				d
+		\item Placing the number in long equations \ref{long}
+			\begin{equation}\label{long}
+				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
 			\end{equation}
-		\item Having a referenced equation with reference after
-			\begin{equation}\label{referenceAfter}
-				e
-			\end{equation}
-			\ref{referenceAfter}
 		\item Printing the number without referencing
 			\begin{equation+}
-				f
+				E = mgh
 			\end{equation+}
 		\item Using cref
 			\begin{equation}\label{cref}
 				g
 			\end{equation}
 			\cref{cref}
-		\item Using align
-		\begin{align}
-ff\label{b}\\
-hh\label{c}\\
-d
-\end{align}
-\ref{b}\ref{c}%
+		\item Using align \ref{alignOne}, \ref{alignThree}
+			\begin{align}
+				a\label{alignOne}\\
+				b\label{alignTwo}\\
+				c\label{alignThree}
+			\end{align}
+		\item Using gather \ref{gatherOne}, \ref{gatherThree}
+			\begin{gather}
+				a\label{gatherOne}\\
+				b\label{gatherTwo}\\
+				c\label{gatherThree}
+			\end{gather}
+		\item Using multline without referencing
+			\begin{multline}
+				a\\
+				c\label{multlineUnreferenced}
+			\end{multline}
+		\item Using multline with referencing \ref{multlineReferenced}
+			\begin{multline}
+				a\\
+				c\label{multlineReferenced}
+			\end{multline}
+		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
+			\begin{equation}
+				\begin{aligned}
+					a\label{alignedOne}\\
+					b\label{alignedTwo}\\
+					c\label{alignedThree}
+				\end{aligned}
+			\end{equation}
+		\item Using gathered \ref{gatheredOne}, \ref{gatheredThree}
+			\begin{equation}
+				\begin{gathered}
+					a\label{gatheredOne}\\
+					b\label{gatheredTwo}\\
+					c\label{gatheredThree}
+				\end{gathered}
+			\end{equation}
 	\end{itemize}
-
-
-% 	\begin{align}%
-% 		a\label{a}\\
-% 		b\label{b}\\
-% 		c\label{c}
-% 	\end{align}
-% % 	\ref{a}
-% % 	\ref{a}\ref{b}
-% % 	\ref{a}\ref{c}%
-% 	\ref{a}\ref{b}\ref{c}\ref{d}
-%
-% 	\begin{align}%
-% 		d\label{d}\\
-% 		e
-% 	\end{align}
 \end{document}
 

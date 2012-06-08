@@ -86,7 +86,7 @@ and the derived files           autonum.ins,
 %</internal>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{autonum}[2012/05/26 v0.1 autonum LaTeX package]
+\ProvidesPackage{autonum}[2012/06/07 v0.2 autonum LaTeX package]
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
@@ -125,11 +125,12 @@ and the derived files           autonum.ins,
 %\maketitle
 %
 %\changes{v0.1}{2012/05/26}{First public release}
+%\changes{v0.2}{2012/06/07}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\align}.}
 %
 % \section{Introduction}
-% In \LaTeX, the user has to decide manually which equation gets a number by optionally adding a star in the math environments. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
+% With \LaTeX, the user has to decide manually if an equation should not get a number by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
 %
-% The other automatic possibility one can think of is to number only the referenced equations. The \href{http://www.ctan.org/tex-archive/macros/latex/contrib/mh/}{mathtools} package's option \texttt{showonlyrefs} seems to be the solution for those, who want to have the referenced equations numbered only. Unfortunately for \href{http://www.ctan.org/pkg/amsmath}{amsmath} users this also means a step backwards, as the numbering can overwrite parts of the equation according to its documentation. Generally, this options seems to be quite unreliable. The autonum package implements the numbering of referenced equations only without this deficiencies.
+% The other automatic possibility one can think of is to number only the referenced equations. The \href{http://www.ctan.org/tex-archive/macros/latex/contrib/mh/}{mathtools} package's option \texttt{showonlyrefs} seems to be the solution for those who want to have the referenced equations numbered only. Unfortunately for \href{http://www.ctan.org/pkg/amsmath}{amsmath} users this also means a step backwards, as the numbering can overwrite parts of the equation according to its documentation. Generally, this options seems to be quite unreliable as it is incompatible with the \href{http://www.ctan.org/tex-archive/macros/latex/contrib/cleveref/}{cleveref} package. The autonum package implements the numbering of referenced equations only without this deficiencies.
 %^^A This currently does not work with cleveref, as equations without a number increment the equation counter, too. As placing the labels does not always work correctly, \cmd{\mathtoolsset{showonlyrefs}} is not an option (see mathtools documentation, bottom of page 10).
 %
 % \section{Usage and Examples}
@@ -152,13 +153,13 @@ and the derived files           autonum.ins,
 % 	2 = 2\quad(\text{equation with label, not referenced})
 % \end{equation*}
 %
-%^^A \autonum@equationOld\label{alreadyReferenced}
-%^^A 	3 = 3\quad(\text{equation with label, already referenced})
-%^^A \autonum@endequationOld
+% \begin{equation+}\label{alreadyReferenced}
+% 	3 = 3\quad(\text{equation with label, already referenced})
+% \end{equation+}
 %
-%^^A \autonum@equationOld\label{referencedLater}
-%^^A 	4 = 4\quad(\text{equation with label, referenced later})
-%^^A \autonum@endequationOld
+% \begin{equation+}\label{referencedLater}
+% 	4 = 4\quad(\text{equation with label, referenced later})
+% \end{equation+}
 % \makeatother
 % Now let's reference the fourth equation: \ref{referencedLater}. The first and the second equations do not get a number, as they are not referenced.
 %
@@ -178,8 +179,13 @@ and the derived files           autonum.ins,
 % \cmd{\end\{document\}}
 % \vspace{0.5em}
 %
-% To get the correct references up to three compiliation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used.
+% To get the correct references up to three compiliation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used. This is probably not avoidable, as the information which equation should have a number is simply not always available in the first run while layouting the equation. Thus the equation's number can change in the second run. For the reference command, this information is only stable in the third run, as the equations influence on each other.
 %\end{macro}
+%
+% \begin{macro}{\[ et al.}
+% Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{equation}, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
+% As the commands \cmd{\[} and \cmd{\]} are now useless, they are redefined to the new \texttt{align} environment. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one. But the new one inherits all the multiline and alignment capabilities from align and thus is recommended as default while writing.
+% \end{macro}
 %
 %\begin{macro}{equation+}
 % In the probably rare case, that an equation is very important and not references within the text, but some other person wants to reference to that equation, you can use \cmd{\begin\{equation+\}} and \cmd{\end\{equation+\}}. The equation is then numbered in all cases (having a label or not, being referenced or not). This feature has been added, so that all \href{http://tex.stackexchange.com/a/52287}{three referencing practices} are supported in \LaTeX\ with as much automation as possible.
@@ -199,17 +205,17 @@ and the derived files           autonum.ins,
 %
 % \section{Compatibility}
 % \subsection{Load Order}
-% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. Normally amsmath is automatically loaded to make use of the more advances math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref (\cmd{\cref}) for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, the aux file must potentially be manually deleted to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. The best place to put the \cmd{\let} probably is directly before loading numref. The support of autonum without amsmath has been discontinued, but please contact the author if you are interested in using autonum without amsmath.
+% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advances math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. Probably the best place to put the \cmd{\let} is directly before loading autonum. The support of autonum without amsmath has been discontinued, but please contact the author if you are interested in using autonum without amsmath.
 %
 % \subsection{Reference commands}
 % As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
 %
 % \section{Further Ideas}
 % \begin{itemize}
+% \item A similar approch could be used for figure and table environments. There, a warning could be printed, if the environment is not referenced.
 % \item A warning could be printed, if another compile is necessary.
-% \item A similar approch could be used for figure and table environments. There, a warning could be printed, if an environment is not referenced.
-% \item Instead of "+" a "*" could be used.
-% \item The starred forms of the environments could be undefined with \csundef{equation*} and \csundef{endequation*}.
+% \item A "*" could be used instead of a "+".
+% \item To avoid wrong use, the environments' starred versions could be undefined with \cmd{\csundef\{equation*\}} and \cmd{\csundef\{endequation*\}}.
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
 % \end{itemize}
 %
@@ -260,19 +266,22 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation.
 %    \begin{macrocode}
-	% TODO: Kompilierte Doku durchlesen
+	% TODO: Problem mit flalign lösen
+	% TODO: test-autonum auf neuesten Stand bringen -> test-autonum.tex ggf. noch in ctanify aufnehmen
 	% TODO: Rausschreiben, wie man \\ patchen kann
-	% TODO: test-autonum auf neuesten Stand bringen
 	% TODO: In Diss testen und dort auf \[ umsteigen
-	\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}
-	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,align}
+	\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}%
+%^^A	\ifdef{\multlined}{%
+%^^A		\autonum@patchBlockEnvironment{multlined}%
+%^^A	}{}%
+	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,align}%
 %    \end{macrocode}
-
+	%
 	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old command's capabilities are basically a subset of the new capabilities.
 %    \begin{macrocode}
-	\def\[#1\]{\begin{align}#1\end{align}}
+	\def\[#1\]{\begin{align}#1\end{align}}%
 %    \end{macrocode}
-
+	%
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
 %    \begin{macrocode}
 	\autonum@generatePatchedReference{ref}%
@@ -441,7 +450,7 @@ and the derived files           autonum.ins,
 			\notag%
 		}
 %    \end{macrocode}
-		% The current label does not have to be cleaned, as every line is a separate cell \href{http://tex.stackexchange.com/q/58190,}{defining a local group} in an displayed math environment.
+		% The current label does not have to be cleaned, as every line is a separate cell \href{http://tex.stackexchange.com/q/58190}{defining a local group} in an displayed math environment.
 %    \begin{macrocode}
 	}{%
 		\notag%
