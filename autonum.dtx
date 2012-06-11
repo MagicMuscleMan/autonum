@@ -266,9 +266,9 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation.
 %    \begin{macrocode}
+	% TODO: Da sich equation und align \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{unterschiedlich verhalten}, sollte ein intelligenter \cmd{\[}-Befehl zwischen beiden umschalten, je nachdem ob ein \\ kommt oder nicht.
 	% TODO: Problem mit aligend lösen
 	% TODO: Problem mit gathered lösen
-	% TODO: Da sich equation und align \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{unterschiedlich verhalten}, sollte ein intelligenter \cmd{\[}-Befehl zwischen beiden umschalten, je nachdem ob ein \\ kommt oder nicht.
 	% TODO: In Diss testen und dort auf \[ umsteigen
 	\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}%
 %^^A	\ifdef{\multlined}{%
@@ -277,9 +277,9 @@ and the derived files           autonum.ins,
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,align}%
 %    \end{macrocode}
 	%
-	% \cmd{\[} and \cmd{\]} are defined as \cmd{\align}. Due to the improved logic, the old command's capabilities are basically a subset of the new capabilities.
+	% Patch the environment delimited by \cmd{\[} and \cmd{\]}.
 %    \begin{macrocode}
-	\def\[#1\]{\begin{align}#1\end{align}}%
+	\autonum@patchShortcutEnvironment
 %    \end{macrocode}
 	%
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
@@ -326,13 +326,17 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 				\global\cslet{autonum@newline#1}\\%
 %    \end{macrocode}
+				% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would not have number 1).
+%    \begin{macrocode}
+				\notag%
+%    \end{macrocode}
 				% For multline, check, that autonum's label command is undefined, because this means, that the first pass (measuring pass) of the environment is active. This is to avoid getting the \cmd{\label} command of the second pass (displaying pass), where the \cmd{\label} command is set to the \href{http://tex.stackexchange.com/a/59088/7323}{null definition}. The multline environment seems to need the first pass, whereas other environments seem to need the second pass, so adapt to the environments.
 %    \begin{macrocode}
 				\ifboolexpr{not test {\ifstrequal{#1}{multline}} or test {\ifcsundef{autonum@label#1}}}{%
 					\global\cslet{autonum@label#1}{\label}%
-				}
+				}%
 %    \end{macrocode}
-				% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would have the number 2).
+				% Use \cmd{\notag} again, to avoid an error with the gathered environment. WTF?
 %    \begin{macrocode}
 				\notag%
 			\end{#1}%
@@ -485,6 +489,65 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 		\csuse{autonum@reference#1Old}{##1}%
 	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchShortcutEnvironment}
+% Use a counter to numerate all \cmd{\[}-\cmd{\]}-environments linearly.
+%    \begin{macrocode}
+\newcounter{autonum@counter}
+%    \end{macrocode}
+% \cmd{\[} and \cmd{\]} are redefined as the correct one of \texttt{equation} and \texttt{align}. Due to the improved numbering, the old environment's capabilities are basically a subset of the new capabilities.
+%    \begin{macrocode}
+\def\autonum@patchShortcutEnvironment{%
+	\def\[##1\]{%
+%    \end{macrocode}
+		% This command checks if the current environment only consists of one line without counting lines in sub-environments. The default will result in an align environment, as using an equation if an align were needed results in a compile error.
+%    \begin{macrocode}
+		\ifcsedef{autonum@\Roman{autonum@counter}HasExactlyOneLine}{%
+			\autonum@useWithMultipleLineDetection{equation}{##1}%
+		}{%
+			\autonum@useWithMultipleLineDetection{align}{##1}%
+		}%
+		\stepcounter{autonum@counter}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@useWithMultipleLineDetection}
+%    \begin{macrocode}
+\def\autonum@useWithMultipleLineDetection#1#2{%
+	\begin{#1}%
+%    \end{macrocode}
+	% Use global as this is in the middle of the first local group of a math environment.
+%    \begin{macrocode}
+		\global\let\autonum@patchedNewline\\%
+%    \end{macrocode}
+	% Set the multipleLines variable if a newline is used. Do not use the newline for equations, as this results in "There's no line here to end" errors.
+%    \begin{macrocode}
+		\ifstrequal{#1}{align}{%
+			\gdef\\{%
+				\autonum@patchedNewline
+				\gdef\autonum@multipleLines{}%
+			}%
+		}{%
+			\gdef\\{%
+				\gdef\autonum@multipleLines{}%
+			}%
+		}
+		#2%
+		\global\let\\\autonum@patchedNewline%
+%    \end{macrocode}
+		% Store information if the current math environment. The roman number is used, as there might be no label and if there is one, it might not be available at the beginning of the environment.
+%    \begin{macrocode}
+		\ifdef{\autonum@multipleLines}{%
+			\global\undef{\autonum@multipleLines}%
+		}{%
+			\csxdefaux{autonum@\Roman{autonum@counter}HasExactlyOneLine}{\Roman{autonum@counter}}%
+		}%
+	\end{#1}%
 }
 %    \end{macrocode}
 %\end{macro}
