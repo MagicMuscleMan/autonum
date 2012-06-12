@@ -60,22 +60,30 @@
 				a\\
 				c\label{multlineReferenced}
 			\end{multline}
-		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
-			\begin{equation}
-				\begin{aligned}
-					a\label{alignedOne}\\
-					b\label{alignedTwo}\\
-					c\label{alignedThree}
-				\end{aligned}
-			\end{equation}
-		\item Using gathered \ref{gatheredOne}, \ref{gatheredThree}
-			\begin{equation}
-				\begin{gathered}
-					a\label{gatheredOne}\\
-					b\label{gatheredTwo}\\
-					c\label{gatheredThree}
-				\end{gathered}
-			\end{equation}
+		\item short one-line shortcut \[n\]
+		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
+		\item align, numbering always \begin{align+} a=l \end{align+}
+		\item gather, numbering always \begin{gather+} g=a \end{gather+}
+		\item multline, numbering always \begin{multline+} m=u \end{multline+}
+		\item equation, numbering always \begin{equation+} e=q \end{equation+}
+		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \]
+		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
+% 		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
+% 			\begin{equation}
+% 				\begin{aligned}
+% 					a\label{alignedOne}\\
+% 					b\label{alignedTwo}\\
+% 					c\label{alignedThree}
+% 				\end{aligned}
+% 			\end{equation}
+% 		\item Using gathered \ref{gatheredOne}, \ref{gatheredThree}
+% 			\begin{equation}
+% 				\begin{gathered}
+% 					a\label{gatheredOne}\\
+% 					b\label{gatheredTwo}\\
+% 					c\label{gatheredThree}
+% 				\end{gathered}
+% 			\end{equation}
 	\end{itemize}
 \end{document}
 
