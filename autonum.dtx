@@ -145,13 +145,13 @@ and the derived files           autonum.ins,
 %\begin{macro}{equation}
 % The following examples show the results of the equation environment after loading the package. Now let's reference the third equation: \ref{alreadyReferenced}.
 % \makeatletter
-% \begin{equation*}
+% \begin{equation}
 % 	1 = 1\quad(\text{equation without label})
-% \end{equation*}
+% \end{equation}
 %
-% \begin{equation*}\label{notReferenced}
+% \begin{equation}\label{notReferenced}
 % 	2 = 2\quad(\text{equation with label, not referenced})
-% \end{equation*}
+% \end{equation}
 %
 % \begin{equation+}\label{alreadyReferenced}
 % 	3 = 3\quad(\text{equation with label, already referenced})
@@ -184,11 +184,15 @@ and the derived files           autonum.ins,
 %
 % \begin{macro}{\[ et al.}
 % Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{equation}.^^A, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
-% As the commands \cmd{\[} and \cmd{\]} are now useless, instead either the \texttt{equation} or the \texttt{align} environments are used, depending on the number of lines in the equation. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one if the equation is only one line. The new definition inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing. If the environment's content has only one line, the equation environment is used, which has a \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{smaller vertical space} for short lines above the environment compared to align.
+% As the commands \cmd{\[} and \cmd{\]} are now useless, instead either the \texttt{equation} or the \texttt{align} environments are used, depending on the number of lines in the equation. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one if the equation is only one line. The new definition inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing. If the environment's content has only one line, the equation environment is used, which has a \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{smaller vertical space} for short lines above the environment compared to align. There are different opinions about the semantics of the naming of math environments. As \texttt{align} is not the best name to reference to an environment containing multiple equations, \cmd{\[}-\cmd{\]} is probably not that much worse, too.
 % \end{macro}
 %
 %\begin{macro}{equation+}
 % In the probably rare case, that an equation is very important and not references within the text, but some other person wants to reference to that equation, you can use \cmd{\begin\{equation+\}} and \cmd{\end\{equation+\}}. The equation is then numbered in all cases (having a label or not, being referenced or not). This feature has been added, so that all \href{http://tex.stackexchange.com/a/52287}{three referencing practices} are supported in \LaTeX\ with as much automation as possible.
+%\end{macro}
+%
+%\begin{macro}{equation*}
+% The starred version have been deleted, to avoid accidental use. Use the versions without star and without adding a label, to avoid that the equation gets a number.
 %\end{macro}
 %
 %^^A \documentclass{article}
@@ -215,9 +219,8 @@ and the derived files           autonum.ins,
 % \item A similar approch could be used for figure and table environments. There, a warning could be printed, if the environment is not referenced.
 % \item A warning could be printed, if another compile is necessary.
 % \item A "*" could be used instead of a "+".
-% \item To avoid wrong use, the environments' starred versions could be undefined with \cmd{\csundef\{equation*\}} and \cmd{\csundef\{endequation*\}}.
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
-% \item It would be good, if umlauts were no problem in labels
+% \item It would be good, if umlauts were possible in labels
 % \end{itemize}
 %
 % \section{Implementation}
@@ -267,7 +270,9 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation. The environments aligned and gathered are not redefined, as it is unclear, how the numbering should work.
 %    \begin{macrocode}
-	% TODO: In Diss testen und dort auf \[ umsteigen
+	% TODO: Warings in test-autonum beseitigen. Wenn hyperref aktiv ist und nach einer unreferenzierten Equation (mit oder ohne Label) eine weitere Equation vorkommt (referenziert oder unreferenziert), dann gibt es die folgende Warning: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored"
+	% TODO: In test-autonum hinzufügen:\[\(a+b\\d+e\)\]
+	% TODO: In Diss auf \[ umsteigen
 	%^^A\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}%
 %^^A	\ifdef{\multlined}{%
 %^^A		\autonum@patchBlockEnvironment{multlined}%
@@ -378,6 +383,11 @@ and the derived files           autonum.ins,
 		\csuse{autonum@end#1Old}%
 		\autonum@restoreSubcommands
 	}%
+%    \end{macrocode}
+		% Delete the starred versions of the environment, as they sometimes lead to strange errors a long time after using the starred version.  By deleting it, the error occurs at the right place.
+%    \begin{macrocode}
+	\global\csundef{#1*}%
+	\global\csundef{end#1*}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -515,9 +525,11 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@useWithMultipleLineDetection}
+% This function uses an environment defined by the first argument to display the content given in the second argument. A multiple-line detection is activated, to set a variable if more than one line is used.
 %    \begin{macrocode}
 \def\autonum@useWithMultipleLineDetection#1#2{%
 	\begin{#1}%
+		\autonum@patchParentheses
 %    \end{macrocode}
 	% Use global as this is in the middle of the first local group of a math environment.
 %    \begin{macrocode}
@@ -548,7 +560,52 @@ and the derived files           autonum.ins,
 		}{%
 			\csxdefaux{autonum@\Roman{autonum@counter}HasExactlyOneLine}{\Roman{autonum@counter}}%
 		}%
+		\autonum@restoreParentheses
 	\end{#1}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchParentheses}
+% This function patches the left and the right parantheses.
+%    \begin{macrocode}
+\global\def\autonum@patchParentheses{%
+	\autonum@patchParenthesis{(}{Left}{}%
+	\autonum@patchParenthesis{)}{Right}{end}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@patchParenthesis}
+% This function patches a parenthesis given in the first argument with a name partly given in the second argument by using the third argument.
+%    \begin{macrocode}
+\global\def\autonum@patchParenthesis#1#2#3{%
+	\ifcsdef{#1}{%
+		\global\csletcs{autonum@old#2Parenthesis}{#1}%
+	}{}%
+	\global\csletcs{#1}{#3split}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@restoreParentheses}
+% This function restores the left and the right parantheses.
+%    \begin{macrocode}
+\global\def\autonum@restoreParentheses{%
+	\autonum@restoreParenthesis{(}{Left}%
+	\autonum@restoreParenthesis{)}{Right}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@restoreParenthesis}
+% This function restores a parenthesis given in the first argument with the name given in the second argument.
+%    \begin{macrocode}
+\global\def\autonum@restoreParenthesis#1#2{%
+	\ifcsdef{autonum@old#2Parenthesis}{%
+		\global\csletcs{#1}{autonum@old#2Parenthesis}%
+		\global\csundef{autonum@old#2Parenthesis}%
+	}{}%
 }
 %    \end{macrocode}
 %\end{macro}
