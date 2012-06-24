@@ -86,7 +86,8 @@ and the derived files           autonum.ins,
 %</internal>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{autonum}[2012/06/07 v0.2 autonum LaTeX package]%TODO: ändern
+\ProvidesPackage{autonum}[2012/06/21 v0.2 autonum LaTeX package]
+\PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
@@ -125,10 +126,10 @@ and the derived files           autonum.ins,
 %\maketitle
 %
 %\changes{v0.1}{2012/05/26}{First public release}
-%\changes{v0.2}{2012/06/07}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\align}.}%TODO:ändern
+%\changes{v0.2}{2012/06/21}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\equation}.}
 %
 % \section{Introduction}
-% With \LaTeX, the user has to decide manually if an equation should not get a number by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
+% With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
 %
 % The other automatic possibility one can think of is to number only the referenced equations. The \href{http://www.ctan.org/tex-archive/macros/latex/contrib/mh/}{mathtools} package's option \texttt{showonlyrefs} seems to be the solution for those who want to have the referenced equations numbered only. Unfortunately for \href{http://www.ctan.org/pkg/amsmath}{amsmath} users this also means a step backwards, as the numbering can overwrite parts of the equation according to its documentation. Generally, this options seems to be quite unreliable as it is incompatible with the \href{http://www.ctan.org/tex-archive/macros/latex/contrib/cleveref/}{cleveref} package. The autonum package implements the numbering of referenced equations only without this deficiencies.
 %^^A This currently does not work with cleveref, as equations without a number increment the equation counter, too. As placing the labels does not always work correctly, \cmd{\mathtoolsset{showonlyrefs}} is not an option (see mathtools documentation, bottom of page 10).
@@ -140,11 +141,10 @@ and the derived files           autonum.ins,
 % \cmd{\usepackage\{autonum\}}
 % \vspace{0.5em}
 %
-% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred form. You can use the (redefined) \cmd{\[}-\cmd{\]}-environment more often, as it is most of the time the correct choice, if you add the apropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs. Sometimes, a \texttt{multline} or \texttt{gather} environment is needed.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
+% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred form. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, or \texttt{gather} environment is needed.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
 %
 %\begin{macro}{equation}
 % The following examples show the results of the equation environment after loading the package. Now let's reference the third equation: \ref{alreadyReferenced}.
-% \makeatletter
 % \begin{equation}
 % 	1 = 1\quad(\text{equation without label})
 % \end{equation}
@@ -160,7 +160,6 @@ and the derived files           autonum.ins,
 % \begin{equation+}\label{referencedLater}
 % 	4 = 4\quad(\text{equation with label, referenced later})
 % \end{equation+}
-% \makeatother
 % Now let's reference the fourth equation: \ref{referencedLater}. The first and the second equations do not get a number, as they are not referenced.
 %
 % If you want to try an example yourself, you can take this one, where only the first equation gets a number:
@@ -179,58 +178,52 @@ and the derived files           autonum.ins,
 % \cmd{\end\{document\}}
 % \vspace{0.5em}
 %
-% To get the correct references up to three compiliation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used. This is probably not avoidable, as the information which equation should have a number is simply not always available in the first run while layouting the equation. Thus the equation's number can change in the second run. For the reference command, this information is only stable in the third run, as the equations influence on each other.
+% To get the correct references up to three compilation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guaranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used. This is probably not avoidable, as the information which equation should have a number is simply not always available in the first run while layouting the equation. Thus, the equation's number can change in the second run. For the reference command, this information is only stable in the third run, as the equations influence each other.
 %\end{macro}
 %
 % \begin{macro}{\[ et al.}
-% Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{equation}.^^A, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
-% As the commands \cmd{\[} and \cmd{\]} are now useless, instead either the \texttt{equation} or the \texttt{align} environments are used, depending on the number of lines in the equation. Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one if the equation is only one line. The new definition inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing. If the environment's content has only one line, the equation environment is used, which has a \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{smaller vertical space} for short lines above the environment compared to align. There are different opinions about the semantics of the naming of math environments. As \texttt{align} is not the best name to reference to an environment containing multiple equations, \cmd{\[}-\cmd{\]} is probably not that much worse, too.
+% Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{equation}. ^^A, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
+% As the commands \cmd{\[} and \cmd{\]} are useless when using autonum, they are redefined to be an alias of \texttt{begin\{equation\}} and \texttt{end\{equation\}}, respectively. ^^A, instead either the \texttt{equation} or the \texttt{align} environments are used, depending on the number of lines in the equation.
+% Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one. ^^A if the equation is only one line. The new definition inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing. If the environment's content has only one line, the equation environment is used, which has a \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{smaller vertical space} for short lines above the environment compared to align.
 % \end{macro}
 %
 %\begin{macro}{equation+}
-% In the probably rare case, that an equation is very important and not references within the text, but some other person wants to reference to that equation, you can use \cmd{\begin\{equation+\}} and \cmd{\end\{equation+\}}. The equation is then numbered in all cases (having a label or not, being referenced or not). This feature has been added, so that all \href{http://tex.stackexchange.com/a/52287}{three referencing practices} are supported in \LaTeX\ with as much automation as possible.
+% In the rare case, that an equation is very important and not references within the text, but some other person wants to reference to that equation, you can use \cmd{\begin\{equation+\}} and \cmd{\end\{equation+\}}. The equation is then numbered in all cases (having a label or not, being referenced or not). This feature has been added, so that all \href{http://tex.stackexchange.com/a/52287}{three referencing practices} are supported in \LaTeX\ with as much automation as possible. The other math environments support a \texttt{+}-variant, too.
 %\end{macro}
 %
 %\begin{macro}{equation*}
-% The starred version have been deleted, to avoid accidental use. Use the versions without star and without adding a label, to avoid that the equation gets a number.
+% The starred versions have been deleted, to avoid accidental use. Use the versions without star and without adding a label, to avoid that an equation gets a number.
 %\end{macro}
-%
-%^^A \documentclass{article}
-%^^A \usepackage{amsmath}
-%^^A \usepackage{mathtools}
-%^^A \mathtoolsset{showonlyrefs,showmanualtags}
-%^^A \begin{document}
-%^^A \begin{equation}
-%^^A \sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\label{myequation}
-%^^A \end{equation}
-%^^A Text \ref{myequation}
-%^^A \end{document}
-%
 %
 % \section{Compatibility}
 % \subsection{Load Order}
-% The autonum package is very careful to not break other packages, but other packages might break autonum. Thus, autonum should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advances math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors. As default only the \cmd{\ref} and the \cmd{cref} commands are supported. You can add other commands by executing \cmd{\let}\cmd{\ref}\cmd{\otherref} in the preamble. Probably the best place to put the \cmd{\let} is directly before loading autonum. The support of autonum without amsmath has been discontinued, but please contact the author if you are interested in using autonum without amsmath.
+% As other packages might break autonum, it should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advanced math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum, as cleveref may not be loaded after amsmath. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors.  The support of autonum without amsmath has been discontinued due to missing demand.
+%
+% \subsection{Hyperref}
+% The hyperref package must be loaded with the option \texttt{hypertexnames=false} to work when autonum is used.\\
+% Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored". Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is references. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
 %
 % \subsection{Reference commands}
-% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
+% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}. Mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the aforementioned command, respectively.
 %
 % \section{Further Ideas}
 % \begin{itemize}
-% \item A similar approch could be used for figure and table environments. There, a warning could be printed, if the environment is not referenced.
+% \item A similar approach could be used for figure and table environments to print a warning, if such an environment is not referenced. With the subfig package, the solution would be harder, as a figure or table may be unreferenced, if all subfloats are referenced. Similarly, a subfloat may be unreferenced, if its parent environment is referenced. So the warning should only be printed if an unreferenced parent environment either does not have any child environment or if there is an unreferenced child environment.
 % \item A warning could be printed, if another compile is necessary.
 % \item A "*" could be used instead of a "+".
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
-% \item It would be good, if umlauts were possible in labels
+% \item It would be good, if umlauts were possible in labels -- the \texttt{stringstrings} package might be handy
+% The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
 % \end{itemize}
 %
 % \section{Implementation}
 % The basic idea is to write into the aux file and save a variable whenever a label is referenced, so that the information is available in the current and in the next run. The label information is passed from the label command to the newline command. The newline command uses the label and the reference information to possibly add a \cmd{\notag} command, deciding if it is referenced or not.
 %
-% Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (prooved by using \cmd{\show}\cmd{\\} before and after the call to amsmath's newline command) when using local definitions. As amsmath behaves like a virus then, the patched newline function is only called for the first newline. After the first call, amsmath's hijacked newline is used directly without giving a chance to do something useful. To correct this behaviour, the newline command would need to be patched again. Unfortunately, \cmd{\let} cannot be used to save the current command, because the copy generated by \cmd{\let} is deleted by amsmath (WTF?). To avoid all this, some global definitions are used.
+% ^^A Calling the old newline command leads to a redefinition (overwriting, not patching) of the (current) newline command (proved by using \cmd{\show}\cmd{\\} before and after the call to amsmath's newline command) when using local definitions. As amsmath behaves like a virus then, the patched newline function is only called for the first newline. After the first call, amsmath's hijacked newline is used directly without giving a chance to do something useful. To correct this behavior, the newline command would need to be patched again. Unfortunately, \cmd{\let} cannot be used to save the current command, because the copy generated by \cmd{\let} is deleted by amsmath (WTF?). To avoid all this, some global definitions are used.
 
 %\begin{macro}{\csxdefaux}
 % This command is similar to the \cmd{\csxdef} command from the package etoolbox, but instead of defining the command immediately, it is defined in the next run by writing it to the aux file. The name is given by the first argument (which may not have a leading backslash). The second argument is the replacement text. This command would be a candidate for inclusion into etoolbox. \cmd{\ifcsdef} can be used to check, if the command has been defined. See also http://tex.stackexchange.com/a/49035
-% Usage: \cmd{\csxdefaux{csname}{replacement}}
+% Usage: \cmd{\csxdefaux\{csname\}\{replacement\}}
 %    \begin{macrocode}
 \def\csxdefaux#1#2{%
 %    \end{macrocode}
@@ -264,15 +257,12 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-% This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behaviour seems reasonable.
+% This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behavior seems reasonable.
 %    \begin{macrocode}
 \AtBeginDocument{%
 %    \end{macrocode}
-	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behaviour is not described in amsmath's documentation. The environments aligned and gathered are not redefined, as it is unclear, how the numbering should work.
+	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environment flalign is also not redefined, as it's behavior is not described in amsmath's documentation. The environments aligned and gathered are not redefined, as it is unclear, how the numbering should work.
 %    \begin{macrocode}
-	% TODO: Warings in test-autonum beseitigen. Wenn hyperref aktiv ist und nach einer unreferenzierten Equation (mit oder ohne Label) eine weitere Equation vorkommt (referenziert oder unreferenziert), dann gibt es die folgende Warning: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored"
-	% TODO: In test-autonum hinzufügen:\[\(a+b\\d+e\)\]
-	% TODO: In Diss auf \[ umsteigen
 	%^^A\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}%
 %^^A	\ifdef{\multlined}{%
 %^^A		\autonum@patchBlockEnvironment{multlined}%
@@ -282,7 +272,10 @@ and the derived files           autonum.ins,
 	%
 	% Patch the environment delimited by \cmd{\[} and \cmd{\]}.
 %    \begin{macrocode}
-	\autonum@patchShortcutEnvironment
+% 	\autonum@patchShortcutEnvironment
+	\def\[#1\]{%
+		\begin{equation}#1\end{equation}%
+	}%
 %    \end{macrocode}
 	%
 	% Support the normal \cmd{\ref} command and, if available, the \cmd{\cref} command from cleveref.
@@ -368,6 +361,9 @@ and the derived files           autonum.ins,
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
 %    \begin{macrocode}
 \def\autonum@changeEnvironment#1{%
+%    \end{macrocode}
+		% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once.
+%    \begin{macrocode}
 	\renewenvironment{#1}{%
 %    \end{macrocode}
 		% Prepare the label and the newline commands and begin the displayed equation environment.
@@ -434,18 +430,23 @@ and the derived files           autonum.ins,
 \def\autonum@generatePatchedLabel#1{%
 	\csdef{autonum@patched#1Label}##1{%
 	%    \end{macrocode}
-		% The labeling infomation is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
+		% The labeling information is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 	%    \begin{macrocode}
 		\ifdef{\autonum@currentLabel}{%
 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
 		}{%
 			\def\autonum@currentLabel{##1}%
 		}%
-	%    \end{macrocode}
+%    \end{macrocode}
+		% Only call the original label command if the label gets referenced. This obviously is identical if the reference is located before the label. It is also identical if the reference is located after the label, as the \cmd{\\} or \cmd{\endenvironment} commands which follow the \cmd{\label} would suppress the numbering anyway in the first pass. In the second pass, the information about referencing is the same as if only the content of the following if-command were available.
+%    \begin{macrocode}
+		\ifcsedef{autonum@##1Referenced}{%
+%    \end{macrocode}
 		% The environment's original label command is called to do the real labeling. As it checks for erroneous succeeding labels using \cmd{df@label}, this variable has to be emptied before every call.
-	%    \begin{macrocode}
-		\let\df@label\@empty%
-		\csuse{autonum@label#1}{##1}%
+%    \begin{macrocode}
+			\let\df@label\@empty%
+			\csuse{autonum@label#1}{##1}%
+		}{}
 	}%
 }
 %    \end{macrocode}
@@ -567,7 +568,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@patchParentheses}
-% This function patches the left and the right parantheses.
+% This function patches the left and the right parentheses.
 %    \begin{macrocode}
 \global\def\autonum@patchParentheses{%
 	\autonum@patchParenthesis{(}{Left}{}%
@@ -589,7 +590,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@restoreParentheses}
-% This function restores the left and the right parantheses.
+% This function restores the left and the right parentheses.
 %    \begin{macrocode}
 \global\def\autonum@restoreParentheses{%
 	\autonum@restoreParenthesis{(}{Left}%

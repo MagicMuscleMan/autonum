@@ -1,24 +1,44 @@
 \documentclass{article}
 
 \usepackage{amsmath}
-\usepackage{hyperref}
+\usepackage[hypertexnames=false]{hyperref}
 \usepackage{cleveref}
 \usepackage{autonum}
 
+\newcounter{Hequation}
+\renewcommand{\theHequation}{\thechapter.\arabic{Hequation}}
+\makeatletter
+\g@addto@macro\equation{\stepcounter{Hequation}}
+\makeatother
+
 \begin{document}
+% \tracingall
+% \makeatletter
+% \show\equation
+% \show\autonum@equationOld
+% \show\mathdisplay
+% \show\mathdisplay@pop
+
+% \begin{equation}\label{dd}a\end{equation}%\ref{dd}
+% % \stop
+% \begin{equation}\label{ee}b\end{equation}
 	\section*{Tests}
 	\begin{itemize}
 		\item Having a referenced equation with reference before \ref{referenceBefore}
 			\begin{equation}\label{referenceBefore}
 				d - d = 0
 			\end{equation}
+			\begin{equation}\label{referenceNo}
+				d - d = 0
+			\end{equation}
+		\ref{b}\begin{equation}\label{a}a\end{equation}\begin{equation}\label{b}b\end{equation}
 		\item Having a referenced equation with reference after
 			\begin{equation}\label{referenceAfter}
 				c^2 = c c
 			\end{equation}
 			\ref{referenceAfter}
 		\item Having an unlabeled equation
-			\begin{equation}
+			\begin{equation}\label{abc}
 				a^2 + b^2 = c^2
 			\end{equation}
 		\item Having a labeled, but unreferenced equation
@@ -61,13 +81,14 @@
 				c\label{multlineReferenced}
 			\end{multline}
 		\item short one-line shortcut \[n\]
-		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
+% 		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
 		\item align, numbering always \begin{align+} a=l \end{align+}
 		\item gather, numbering always \begin{gather+} g=a \end{gather+}
 		\item multline, numbering always \begin{multline+} m=u \end{multline+}
 		\item equation, numbering always \begin{equation+} e=q \end{equation+}
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \]
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
+% 		\item super-short \[\(a+b\\d+e\)\]
 % 		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
 % 			\begin{equation}
 % 				\begin{aligned}
