@@ -216,6 +216,15 @@ and the derived files           autonum.ins,
 % The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
 % \end{itemize}
 %
+% \section{Contributions}
+% \begin{itemize}
+%     \item Jonas Nyrup
+%         \begin{itemize}
+%             \item Reporting a bug when using cref with comma separated arguments
+%         \end{itemize}
+% \end{itemize}
+%
+%
 % \section{Implementation}
 % The basic idea is to write into the aux file and save a variable whenever a label is referenced, so that the information is available in the current and in the next run. The label information is passed from the label command to the newline command. The newline command uses the label and the reference information to possibly add a \cmd{\notag} command, deciding if it is referenced or not.
 %
@@ -282,7 +291,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 	\autonum@generatePatchedReference{ref}%
 	\ifdef{\cref}{%
-		\autonum@generatePatchedReference{cref}%
+		\autonum@generatePatchedReferenceCSL{cref}%
 	}{}%
 %    \end{macrocode}
 %    \begin{macrocode}
@@ -484,20 +493,53 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@generatePatchedReference}
-% This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
+% This command can patch reference commands with a normal input argument.
 %    \begin{macrocode}
 \def\autonum@generatePatchedReference#1{%
+	\autonum@generatePatchedReferenceGeneral{#1}{autonum@use}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@generatePatchedReferenceCSL}
+% This command can patch reference commands which expect a comma separated list as input argument.
+%    \begin{macrocode}
+\def\autonum@generatePatchedReferenceCSL#1{%
+	\autonum@generatePatchedReferenceGeneral{#1}{forcsvlist}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@generatePatchedReferenceGeneral}
+% This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
+%    \begin{macrocode}
+\def\autonum@generatePatchedReferenceGeneral#1#2{%
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
-%    \end{macrocode}
-		% Mark label as referenced. The reference information is stored into a variable (for the current run) and into the aux file (for the next run), so it does not matter if the reference is used before or after the definition of the label. Saving into a variable saves one compilation run, although still up to three are needed to get everything right.
-%    \begin{macrocode}
-		\csxdefall{autonum@##1Referenced}{}%
+		\csuse{#2}{\autonum@markLabelAsReferenced}{##1}
 %    \end{macrocode}
 		% Call the old reference command.
 %    \begin{macrocode}
 		\csuse{autonum@reference#1Old}{##1}%
 	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@markLabelAsReferenced}
+% This is a simple helper macro to mark a label as referenced. The reference information is stored into a variable (for the current run) and into the aux file (for the next run), so it does not matter if the reference is used before or after the definition of the label. Saving into a variable saves one compilation run, although still up to three are needed to get everything right.
+%    \begin{macrocode}
+\def\autonum@markLabelAsReferenced#1{%
+	\csxdefall{autonum@#1Referenced}{}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@use}
+% This is a simple helper macro which can be used like a function handle similar to csuse but expecting a macro instead of a macro's name.
+%    \begin{macrocode}
+\def\autonum@use#1#2{%
+	#1{#2}%
 }
 %    \end{macrocode}
 %\end{macro}
