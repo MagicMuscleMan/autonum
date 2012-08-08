@@ -204,7 +204,25 @@ and the derived files           autonum.ins,
 % Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored". Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is references. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
 %
 % \subsection{Reference commands}
-% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. New reference commands can be supported by executing \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}. If the original \cmd{\ref} command should not be overwritten, you can instead use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}. Mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the aforementioned command, respectively.
+% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. Support for new reference commands can be added by executing\\
+% \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}.\\
+% If the original \cmd{\ref} command should not be overwritten, you have the following choices. Please mind that these interfaces might change in the future. Please also mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the commands, respectively.
+%
+%\begin{macro}{\autonum@generatePatchedReference}
+% For normal reference commands expecting a single label name as an argument, you can use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
+%\end{macro}
+%
+%\begin{macro}{\autonum@generatePatchedReferenceCSL}
+% For reference commands expecting a comma separated list of label names as an argument, you can use\\
+% \cmd{\autonum@generatePatchedReferenceCSL}\{\cmd{\NewReferenceCommand}\}.
+%\end{macro}
+%
+%\begin{macro}{\autonum@generatePatchedReferenceGeneral}
+% For reference commands expecting a general data structure containing label names as an argument, you can use\\
+% \cmd{\autonum@generatePatchedReferenceGeneral}\{\cmd{\NewReferenceCommand}\}\\
+% \{\cmd{\SplitAndLoopMacro}\}.\\
+% The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}.
+%\end{macro}
 %
 % \section{Further Ideas}
 % \begin{itemize}
