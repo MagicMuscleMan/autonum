@@ -230,7 +230,6 @@ and the derived files           autonum.ins,
 % \item A warning could be printed, if another compile is necessary.
 % \item A "*" could be used instead of a "+".
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
-% \item It would be good, if umlauts were possible in labels -- the \texttt{stringstrings} package might be handy
 % \item The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
 % \item This trick might be handy: http://tex.stackexchange.com/a/5652
 % \end{itemize}
@@ -240,6 +239,10 @@ and the derived files           autonum.ins,
 %     \item Fg Nu
 %         \begin{itemize}
 %             \item highlighted, that special characters in label names must be supported what lead to the support of special characters
+%         \end{itemize}
+%     \item Joseph Wright
+%         \begin{itemize}
+%             \item created a \href{http://tex.stackexchange.com/a/64271/7323}{correctly working} \cmd{\csxdefaux} what lead to the support of special characters
 %         \end{itemize}
 %     \item Jonas Nyrup
 %         \begin{itemize}
@@ -267,7 +270,7 @@ and the derived files           autonum.ins,
 	% The expandafter commands are used to first expand the \cmd{\csname}-\cmd{\endcsname}. Then there is a command definition left, where the command and its replacement (which can also be a command) are protected by \cmd{\string} to create the command in the next run (when the aux file is read) and not in the current run (when the aux file is written).
 %    \begin{macrocode}
 	\protected@write\@mainaux{}{%
-		\expandafter\string\expandafter\xdef\expandafter\string\csname #1\endcsname{#2}%
+		\csxdef{\detokenize{#1}}{#2}%
 	}%
 }
 %    \end{macrocode}
