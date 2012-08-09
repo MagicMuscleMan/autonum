@@ -231,14 +231,24 @@ and the derived files           autonum.ins,
 % \item A "*" could be used instead of a "+".
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
 % \item It would be good, if umlauts were possible in labels -- the \texttt{stringstrings} package might be handy
-% The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
+% \item The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
+% \item This trick might be handy: http://tex.stackexchange.com/a/5652
 % \end{itemize}
 %
 % \section{Contributions}
 % \begin{itemize}
+%     \item Fg Nu
+%         \begin{itemize}
+%             \item highlighted, that special characters in label names must be supported what lead to the support of special characters
+%         \end{itemize}
 %     \item Jonas Nyrup
 %         \begin{itemize}
-%             \item Reporting a bug when using cref with comma separated arguments
+%             \item reported a bug occuring when using \cmd{\cref} with comma separated arguments what lead to its fix
+%             \item started an interesting discussion if cleveref's \cmd{\crefrange} command should be supported in autonum or not
+%         \end{itemize}
+%     \item Jonas Nyrup
+%         \begin{itemize}
+%             \item convinced me, that there are some users who find valid use of the \cmd{\crefrange} command
 %         \end{itemize}
 % \end{itemize}
 %
