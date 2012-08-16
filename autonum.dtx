@@ -86,7 +86,7 @@ and the derived files           autonum.ins,
 %</internal>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{autonum}[2012/06/21 v0.2 autonum LaTeX package]
+\ProvidesPackage{autonum}[2012/08/16 v0.3 autonum LaTeX package]
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
@@ -127,6 +127,7 @@ and the derived files           autonum.ins,
 %
 %\changes{v0.1}{2012/05/26}{First public release}
 %\changes{v0.2}{2012/06/21}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\equation}.}
+%\changes{v0.3}{2012/08/16}{Support alignat and flalign environments. Fix handling of special characters in label names. Fix handling of multiple label names in \cmd{\cref} command.}
 %
 % \section{Introduction}
 % With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
