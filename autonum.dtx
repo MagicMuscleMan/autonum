@@ -141,7 +141,7 @@ and the derived files           autonum.ins,
 % \cmd{\usepackage\{autonum\}}
 % \vspace{0.5em}
 %
-% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred form. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, \texttt{gather} or \texttt{flalign} environment is needed.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
+% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred forms when defining an equation as they do not make sense with autonum and are deactivated. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, \texttt{gather}, \texttt{flalign} or \texttt{alignat} environment is needed.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
 %
 % Please keep in mind, that using autonum might not always be a good thing. If you hand-in a paper for review with many equations on a page, you might avoid using autonum or if you do, you probably should reference most of your equations or activate line numbers.
 %
@@ -203,7 +203,7 @@ and the derived files           autonum.ins,
 %
 % \subsection{Hyperref}
 % The hyperref package must be loaded with the option \texttt{hypertexnames=false} to work when autonum is used.\\
-% Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored". Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is references. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
+% Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored". Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is referenced. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
 %
 % \subsection{Reference commands}
 % As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. Support for new reference commands can be added by executing\\
@@ -308,15 +308,16 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \AtBeginDocument{%
 %    \end{macrocode}
-	% Most of amsmath's environments are redefined. The environments alignat and alignedat are not redefined, as their syntax differs and they do not seem so useful to be worth the effort. The environments aligned and gathered are not redefined, as it is unclear, how the numbering should work.
+	% Most of amsmath's environments are redefined. The environments aligned and gathered are not redefined, as it is unclear, how the numbering should work.
 %    \begin{macrocode}
 	%^^A\forcsvlist{\autonum@patchBlockEnvironment}{gathered,aligned}%
 %^^A	\ifdef{\multlined}{%
 %^^A		\autonum@patchBlockEnvironment{multlined}%
 %^^A	}{}%
 %    \end{macrocode}
-	% If align is redefined before flalign, autonum.dtx does not build anymore. The error reason is unknown. As the error disappears when align is redefined before flalign, there is no motivation in finding the underlying problem.
+	% If align is redefined before flalign or alignat, autonum.dtx does not build anymore. The error reason is unknown. As the error disappears when align is redefined after both, there is no motivation in finding the underlying problem.
 %    \begin{macrocode}
+	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
 %    \end{macrocode}
 	%
@@ -344,16 +345,20 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 % \def\autonum@patchEnvironment#1{
 \def\autonum@patchFullEnvironment#1{%
-	\autonum@saveEnvironmentSubcommands{#1}{center}%
-	\autonum@patchEnvironmentHelper{#1}%
+	\autonum@saveEnvironmentSubcommands{#1}{center}{}%
+	\autonum@patchEnvironmentHelper{#1}{0}%
+}
+\def\autonum@patchParametrizedFullEnvironment#1{%
+	\autonum@saveEnvironmentSubcommands{#1}{center}{1}%
+	\autonum@patchEnvironmentHelper{#1}{1}%
 }
 \def\autonum@patchBlockEnvironment#1{%
-	\autonum@saveEnvironmentSubcommands{#1}{equation*}%
-	\autonum@patchEnvironmentHelper{#1}%
+	\autonum@saveEnvironmentSubcommands{#1}{equation*}{}%
+	\autonum@patchEnvironmentHelper{#1}{0}%
 }
-\def\autonum@patchEnvironmentHelper#1{%
-	\autonum@renameEnvironment{#1}%
-	\autonum@changeEnvironment{#1}%
+\def\autonum@patchEnvironmentHelper#1#2{%
+	\autonum@renameEnvironment{#1}{#2}%
+	\autonum@changeEnvironment{#1}{#2}%
 	\autonum@generatePatchedLabel{#1}%
 	\autonum@generatePatchedNewline{#1}%
 }
@@ -361,12 +366,12 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@saveEnvironmentSubcommands}
-% This code is to save the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work. Allow for two arguments, to enable putting the alignment building blocks into an equation environment (see amsmath documentation).
+% This code is to save the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work. Allow for two arguments, to enable putting the alignment building blocks into an equation environment (see amsmath documentation). The third argument is needed for environments which have arguments themself.
 %    \begin{macrocode}
-\def\autonum@saveEnvironmentSubcommands#1#2{%
+\def\autonum@saveEnvironmentSubcommands#1#2#3{%
 	\begin{textblock}{1}[1,1](0,0)%
-		\begin{#2}
-			\begin{#1}%
+		\begin{#2}%
+			\begin{#1}#3%
 %    \end{macrocode}
 				% Using global here is necessary to get the information out of the environment.
 %    \begin{macrocode}
@@ -386,19 +391,19 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 				\notag%
 			\end{#1}%
-		\end{#2}
+		\end{#2}%
 	\end{textblock}%
 }
 %    \end{macrocode}
 %\end{macro}
 
 %\begin{macro}{\autonum@renameEnvironment}
-% Rename the old environment to be accessible with an appended + by saving the original environment using a different name.
+% Rename the old environment to be accessible with an appended + by saving the original environment using a different name. The first argument contains the environment's name, the second argument contains the number of arguments the environment has.
 %    \begin{macrocode}
-\def\autonum@renameEnvironment#1{%
+\def\autonum@renameEnvironment#1#2{%
 	\csletcs{autonum@#1Old}{#1}%
 	\csletcs{autonum@end#1Old}{end#1}%
-	\newenvironment{#1+}{%
+	\newenvironment{#1+}[#2]{%
 		\csuse{autonum@#1Old}%
 	}{%
 		\csuse{autonum@end#1Old}%
@@ -408,32 +413,58 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@changeEnvironment}
-% Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures).
+% Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures). The second argument contains the number of arguments the redefined environment has.
 %    \begin{macrocode}
-\def\autonum@changeEnvironment#1{%
+\def\autonum@changeEnvironment#1#2{%
 %    \end{macrocode}
-		% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once.
+		% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once. The following if is only needed to distinguish between environments without (e.g. equation) and with one parameter (e.g. alignat).
 %    \begin{macrocode}
-	\renewenvironment{#1}{%
-%    \end{macrocode}
-		% Prepare the label and the newline commands and begin the displayed equation environment.
-%    \begin{macrocode}
-		\autonum@saveSubcommands
-		\csuse{autonum@#1Old}%
-		\autonum@patchSubcommands{#1}%
-	}{%
-%    \end{macrocode}
-		% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
-%    \begin{macrocode}
-		\autonum@possiblyHideNumber
-		\csuse{autonum@end#1Old}%
-		\autonum@restoreSubcommands
-	}%
+	\ifnum #2=0%
+		\renewenvironment{#1}{%
+			\autonum@startChangeEnvironment{#1}{}%
+		}{%
+			\autonum@endChangeEnvironment{#1}%
+		}
+	\else
+		\renewenvironment{#1}[1]{%
+			\autonum@startChangeEnvironment{#1}{##1}%
+		}{%
+			\autonum@endChangeEnvironment{#1}%
+		}%
+	\fi%
 %    \end{macrocode}
 		% Delete the starred versions of the environment, as they sometimes lead to strange errors a long time after using the starred version.  By deleting it, the error occurs at the right place.
 %    \begin{macrocode}
 	\global\csundef{#1*}%
 	\global\csundef{end#1*}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@startChangeEnvironment}
+% Start the changed environment.
+%    \begin{macrocode}
+\def\autonum@startChangeEnvironment#1#2{%
+%    \end{macrocode}
+	% Prepare the label and the newline commands and begin the displayed equation environment.
+%    \begin{macrocode}
+	\autonum@saveSubcommands
+	\csuse{autonum@#1Old}#2%
+	\autonum@patchSubcommands{#1}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@endChangeEnvironment}
+% Close the changed environment.
+%    \begin{macrocode}
+\def\autonum@endChangeEnvironment#1{%
+%    \end{macrocode}
+	% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
+%    \begin{macrocode}
+	\autonum@possiblyHideNumber
+	\csuse{autonum@end#1Old}%
+	\autonum@restoreSubcommands
 }
 %    \end{macrocode}
 %\end{macro}
