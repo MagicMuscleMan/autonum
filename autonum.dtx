@@ -233,8 +233,8 @@ and the derived files           autonum.ins,
 % \item A "*" could be used instead of a "+".
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
 % \item The command \cmd{\(} could be an alias for \cmd{begin\{split\}} and \cmd{\)} could be an alias for \cmd{end\{split\}}
-% \item This trick might be handy: http://tex.stackexchange.com/a/5652
-% \item The \cmd{\crefrange} might be supported
+% \item This \href{http://tex.stackexchange.com/a/5652}{trick} might be handy
+% \item The \cmd{\crefrange} might be supported. As this would require a lot of work it will only be done if multiple people show interest and there are really convincing real-world examples where using \cmd{\crefrange} is superior to using \cmd{\cref}. Patches are, of course, welcome, too.
 % \end{itemize}
 %
 % \section{Contributions}
