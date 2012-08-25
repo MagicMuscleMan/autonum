@@ -49,6 +49,10 @@
 			\begin{equation}\label{äöüÄÖÜß?:, 3075µ!/§}
 				\sqrt{b}
 			\end{equation}
+		\item Check for spurious whitespace around reference (\ref{checkWhitespace})
+			\begin{equation}\label{checkWhitespace}
+				b_c
+			\end{equation}
 		\item Placing the number in long equations \ref{long}
 			\begin{equation}\label{long}
 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
@@ -103,7 +107,7 @@
 % 		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
 		\item align, numbering always \begin{align+} a=l \end{align+}
 		\item gather, numbering always \begin{gather+} g=a \end{gather+}
-		\item multline, numbering always \begin{multline+} m=u \end{multline+}
+		\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+}
 		\item equation, numbering always \begin{equation+} e=q \end{equation+}
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \]
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}

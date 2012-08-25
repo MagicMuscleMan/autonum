@@ -86,7 +86,7 @@ and the derived files           autonum.ins,
 %</internal>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{autonum}[2012/08/16 v0.3 autonum LaTeX package]
+\ProvidesPackage{autonum}[2012/08/25 v0.3.1 autonum LaTeX package]
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
@@ -128,6 +128,7 @@ and the derived files           autonum.ins,
 %\changes{v0.1}{2012/05/26}{First public release}
 %\changes{v0.2}{2012/06/21}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\equation}.}
 %\changes{v0.3}{2012/08/16}{Support alignat and flalign environments. Fix handling of special characters in label names. Fix handling of multiple label names in \cmd{\cref} command.}
+%\changes{v0.3.1}{2012/08/25}{Fix of leading whitespace in references. Fix of underfull hbox.}
 %
 % \section{Introduction}
 % With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
@@ -142,7 +143,7 @@ and the derived files           autonum.ins,
 % \cmd{\usepackage\{autonum\}}
 % \vspace{0.5em}
 %
-% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred forms when defining an equation as they do not make sense with autonum and are deactivated. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, \texttt{gather}, \texttt{flalign} or \texttt{alignat} environment is needed.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
+% The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred forms when defining an equation as they do not make sense with autonum and are deactivated. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, \texttt{gather}, \texttt{flalign} or \texttt{alignat} environment is needed.  Do \href{http://tug.org/pracjourn/2006-4/madsen/madsen.pdf}{not use \texttt{eqnarray}}.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
 %
 % Please keep in mind, that using autonum might not always be a good thing. If you hand-in a paper for review with many equations on a page, you might avoid using autonum or if you do, you probably should reference most of your equations or activate line numbers.
 %
@@ -261,6 +262,16 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item highlighted, that there are some users who might find valid use of cleveref's \cmd{\crefrange} command
 %         \end{itemize}
+%     \item Marko Pinteric
+%         \begin{itemize}
+%             \item found an underfull hbox error what lead to its removal
+%             \item found the existance of a spurious whitespace problem what lead to its removal
+%         \end{itemize}
+%     \item Heiko Oberdiek
+%         \begin{itemize}
+%             \item found the reason of spurious whitespaces what lead to their removal
+%             \item found an underfull hbox error what lead to its removal
+%         \end{itemize}
 % \end{itemize}
 %
 %
@@ -318,6 +329,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% If align is redefined before flalign or alignat, autonum.dtx does not build anymore. The error reason is unknown. As the error disappears when align is redefined after both, there is no motivation in finding the underlying problem.
 %    \begin{macrocode}
+	\newlength{\autonum@environmentWidth}%
 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
 %    \end{macrocode}
@@ -373,6 +385,11 @@ and the derived files           autonum.ins,
 	\begin{textblock}{1}[1,1](0,0)%
 		\begin{#2}%
 			\begin{#1}#3%
+			%    \end{macrocode}
+				% Avoid underfull hbox warning in multline, by putting content of the correct size in it. The correct size can only be measured here, as the values might change due to the beginning of environments.
+			%    \begin{macrocode}
+				\deflength{\autonum@environmentWidth}{\linewidth-\multlinegap-\multlinegap}%
+				\hspace{\autonum@environmentWidth}%
 %    \end{macrocode}
 				% Using global here is necessary to get the information out of the environment.
 %    \begin{macrocode}
@@ -425,14 +442,14 @@ and the derived files           autonum.ins,
 			\autonum@startChangeEnvironment{#1}{}%
 		}{%
 			\autonum@endChangeEnvironment{#1}%
-		}
+		}%
 	\else
 		\renewenvironment{#1}[1]{%
 			\autonum@startChangeEnvironment{#1}{##1}%
 		}{%
 			\autonum@endChangeEnvironment{#1}%
 		}%
-	\fi%
+	\fi
 %    \end{macrocode}
 		% Delete the starred versions of the environment, as they sometimes lead to strange errors a long time after using the starred version.  By deleting it, the error occurs at the right place.
 %    \begin{macrocode}
@@ -554,7 +571,7 @@ and the derived files           autonum.ins,
 		\ifcsedef{autonum@\csuse{autonum@currentLabel}Referenced}{%
 		}{%
 			\notag%
-		}
+		}%
 %    \end{macrocode}
 		% The current label does not have to be cleaned, as every line is a separate cell \href{http://tex.stackexchange.com/q/58190}{defining a local group} in an displayed math environment.
 %    \begin{macrocode}
@@ -589,7 +606,7 @@ and the derived files           autonum.ins,
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
-		\csuse{#2}{\autonum@markLabelAsReferenced}{##1}
+		\csuse{#2}{\autonum@markLabelAsReferenced}{##1}%
 %    \end{macrocode}
 		% Call the old reference command.
 %    \begin{macrocode}
