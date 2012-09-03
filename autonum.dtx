@@ -86,7 +86,7 @@ and the derived files           autonum.ins,
 %</internal>
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{autonum}[2012/08/25 v0.3.1 autonum LaTeX package]
+\ProvidesPackage{autonum}[2012/09/03 v0.3.2 autonum LaTeX package]
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
@@ -129,6 +129,7 @@ and the derived files           autonum.ins,
 %\changes{v0.2}{2012/06/21}{Support multi-line environments. Redefine \cmd{\[} to use the new \cmd{\equation}.}
 %\changes{v0.3}{2012/08/16}{Support alignat and flalign environments. Fix handling of special characters in label names. Fix handling of multiple label names in \cmd{\cref} command.}
 %\changes{v0.3.1}{2012/08/25}{Fix of leading whitespace in references. Fix of underfull hbox.}
+%\changes{v0.3.2}{2012/09/03}{Fix using reference inside caption.}
 %
 % \section{Introduction}
 % With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
@@ -271,6 +272,14 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item found the reason of spurious whitespaces what lead to their removal
 %             \item found an underfull hbox error what lead to its removal
+%         \end{itemize}
+%     \item Carsten Grimm
+%         \begin{itemize}
+%             \item found a bug when using \cmd{\ref} inside the \cmd{\caption} command which lead to its fix
+%         \end{itemize}
+%     \item Ulrike Fischer
+%         \begin{itemize}
+%             \item found that a \cmd{\protect} is missing to use \cmd{\ref} inside a \cmd{\caption}, which lead to its addition.
 %         \end{itemize}
 % \end{itemize}
 %
@@ -606,7 +615,7 @@ and the derived files           autonum.ins,
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
 	\csletcs{autonum@reference#1Old}{#1}%
 	\csdef{#1}##1{%
-		\csuse{#2}{\autonum@markLabelAsReferenced}{##1}%
+		\csuse{#2}{\protect\autonum@markLabelAsReferenced}{##1}%
 %    \end{macrocode}
 		% Call the old reference command.
 %    \begin{macrocode}
