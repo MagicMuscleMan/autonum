@@ -226,7 +226,7 @@ and the derived files           autonum.ins,
 % For reference commands expecting a general data structure containing label names as an argument, you can use\\
 % \cmd{\autonum@generatePatchedReferenceGeneral}\{\cmd{\NewReferenceCommand}\}\\
 % \{\cmd{\SplitAndLoopMacro}\}.\\
-% The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}.
+% The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}. Commands like the \cmd{\crefrange} command are not supported at the moment.
 %\end{macro}
 %
 % \section{Further Ideas}
