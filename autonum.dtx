@@ -213,17 +213,17 @@ and the derived files           autonum.ins,
 % If the original \cmd{\ref} command should not be overwritten, you have the following choices. Please mind that these interfaces might change in the future. Please also mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the commands, respectively.
 %
 %\begin{macro}{\autonum@generatePatchedReference}
-% For normal reference commands expecting a single label name as an argument, you can use \cmd{\autonum@generatePatchedReference}\{\cmd{\NewReferenceCommand}\}.
+% For normal reference commands expecting a single label name as an argument, you can use \cmd{\autonum@generatePatchedReference}\{\texttt{NewReferenceCommand}\}.
 %\end{macro}
 %
 %\begin{macro}{\autonum@generatePatchedReferenceCSL}
 % For reference commands expecting a comma separated list of label names as an argument, you can use\\
-% \cmd{\autonum@generatePatchedReferenceCSL}\{\cmd{\NewReferenceCommand}\}.
+% \cmd{\autonum@generatePatchedReferenceCSL}\{\texttt{NewReferenceCommand}\}.
 %\end{macro}
 %
 %\begin{macro}{\autonum@generatePatchedReferenceGeneral}
 % For reference commands expecting a general data structure containing label names as an argument, you can use\\
-% \cmd{\autonum@generatePatchedReferenceGeneral}\{\cmd{\NewReferenceCommand}\}\\
+% \cmd{\autonum@generatePatchedReferenceGeneral}\{\texttt{NewReferenceCommand}\}\\
 % \{\cmd{\SplitAndLoopMacro}\}.\\
 % The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}. Commands like the \cmd{\crefrange} command are not supported at the moment.
 %\end{macro}
