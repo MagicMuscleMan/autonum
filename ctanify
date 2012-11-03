@@ -1,2 +1,2 @@
 #!/bin/sh
-ctanify autonum.ins autonum.pdf README test-autonum.tex test-autonum.pdf
+ctanify autonum.ins autonum.pdf README test-autonum.tex test-autonum.pdf test-autonum.tex=doc/latex/autonum
