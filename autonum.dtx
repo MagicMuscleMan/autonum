@@ -209,7 +209,26 @@ and the derived files           autonum.ins,
 %
 % \subsection{Reference commands}
 % As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. Support for new reference commands can be added by executing\\
-% \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}.\\
+% \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}.
+%
+% If you want to use the power of \cmd{\cref} without getting rid of the habit of writing \cmd{\ref}, you can just use add the following code to the preamble
+%
+% \vspace{0.5em}
+% \noindent\cmd{\AfterEndPreamble\{\%}\\
+% \indent\cmd{\let}\cmd{\ref}\cmd{\cref}\\
+% \texttt{\}\%}
+% \vspace{0.5em}
+%
+% If you also strive for maximum consistency and want to avoid accidently writing \cmd{\cref} or \cmd{\autoref}, you can instead add the following lines
+%
+% \vspace{0.5em}
+% \noindent\cmd{\AfterEndPreamble\{\%}\\
+% \indent\cmd{\let}\cmd{\ref}\cmd{\cref}\\
+% \indent\cmd{\undef\{}\cmd{\cref\}\%}\\
+% \indent\cmd{\undef\{}\cmd{\autoref\}\%}\\
+% \texttt{\}\%}
+% \vspace{0.5em}
+%
 % If the original \cmd{\ref} command should not be overwritten, you have the following choices. Please mind that these interfaces might change in the future. Please also mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the commands, respectively.
 %
 %\begin{macro}{\autonum@generatePatchedReference}
