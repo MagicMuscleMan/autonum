@@ -67,10 +67,10 @@
 				ref
 				\caption{\ref{long}}
 			\end{figure}
-					\item Using a cref inside a caption
+		\item Using a cref inside a caption
 			\begin{figure}
 				cref
-				\caption{\ref{long}}
+				\caption{\cref{long}}
 			\end{figure}
 		\item Using cref with one argument
 			\begin{equation}\label{crefOne}
@@ -148,5 +148,12 @@
 % 				\end{gathered}
 % 			\end{equation}
 	\end{itemize}
+	\section{Using ref in section \ref{i1}}\label{i1} text
+	\section{Using cref in \cref{i2}}\label{i2} text
+	\begin{figure}
+		\caption{Ref 2: \cref{i2} and \ref{i2}}
+	\end{figure}
+\tableofcontents
+\listoffigures
 \end{document}
 
