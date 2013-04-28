@@ -264,6 +264,7 @@ and the derived files           autonum.ins,
 %     \item David Carlisle
 %         \begin{itemize}
 %             \item explained that amsmath environments \href{http://tex.stackexchange.com/a/59088/7323}{are executed twice} what lead to the support of the amsmath environments
+%             \item created the \cmd{\vanishprotect} macro what avoided errors after the deactivation of the package
 %         \end{itemize}
 %     \item Fg Nu
 %         \begin{itemize}
@@ -325,7 +326,11 @@ and the derived files           autonum.ins,
 	% The expandafter commands are used to first expand the \cmd{\csname}-\cmd{\endcsname}. Then there is a command definition left, where the command and its replacement (which can also be a command) are protected by \cmd{\string} to create the command in the next run (when the aux file is read) and not in the current run (when the aux file is written).
 %    \begin{macrocode}
 	\protected@write\@mainaux{}{%
-		\csxdef{\detokenize{#1}}{#2}%
+%    \end{macrocode}
+		% The commented and the uncommented lines should do the same. The longer variant has the advantage, that there is no error the first run after the deactivation of the autonum package, as \cmd{\xdef}, read from the aux file, is always a known command, whereas \cmd{\csxdef} might not be known in that case, as with the deactivation of autonum it might happen, that etoolbox is not loaded anymore, too.
+%    \begin{macrocode}
+% 		\csxdef{\detokenize{#1}}{#2}%
+		\expandafter\string\expandafter\xdef\expandafter\string\csname #1\endcsname{#2}%
 	}%
 }
 %    \end{macrocode}
@@ -337,6 +342,19 @@ and the derived files           autonum.ins,
 \def\csxdefall#1#2{%
 	\csxdefaux{#1}{#2}%
 	\csxdef{#1}{#2}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\vanishprotect}
+% This \href{http://tex.stackexchange.com/a/110782}{command} encapsulates content to not appear in the table-of-contents or similar lists. The content is shown in normal text (captions or section headings and so on). The macro uses one arguments in spite of its parameterless definition.
+%    \begin{macrocode}
+\def\vanishprotect{%
+	\ifx\protect\@typeset@protect
+		\expandafter\@firstofone
+	\else
+		\expandafter\@gobble
+	\fi
 }
 %    \end{macrocode}
 %\end{macro}
@@ -636,26 +654,38 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
+
+%\begin{macro}{\skipInPDFTOC}
+% The content of the macro is never written to the PDF's table of content (TOC). This is especially useful for macros which should only modify the normal PDF's content.
+%    \begin{macrocode}
+\def\skipInPDFTOC#1{%
+%    \end{macrocode}
+		% If hyperref is loaded (i.e. \cmd{\texorpdfstring} is defined), take care to only write into the document. If it is not loaded, this is the default behavior.
+%    \begin{macrocode}
+	\ifdef{\texorpdfstring}{%
+		\texorpdfstring{#1}{}%
+	}{%
+		#1%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
 %\begin{macro}{\autonum@generatePatchedReferenceGeneral}
 % This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
 %    \begin{macrocode}
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
 	\csletcs{autonum@reference#1Old}{#1}%
 %    \end{macrocode}
-		% Mark label as referenced and call the old reference command. If hyperref is loaded (i.e. \cmd{\texorpdfstring} is defined), take care to not write in the pdf string, as this would lead to a write inside of a write when, e.g., calling \cmd{\cref} inside of a section command.
+		% Mark label as referenced and call the old reference command. Do not write in the PDF's TOC, as this would lead to a write inside of a write when, e.g., calling \cmd{\cref} inside of a section command. Also use \cmd{\vanishprotect} to avoid writing \cmd{\autonum@markLabelAsReferenced} into the aux file or similar files. This avoids errors after deactivating the autonum package.
 %    \begin{macrocode}
-	\ifdef{\texorpdfstring}{%
-		\csdef{#1}##1{%
-			\texorpdfstring{%
+	\csdef{#1}##1{%
+		\skipInPDFTOC{%
+			\vanishprotect{%
 				\csuse{#2}{\protect\autonum@markLabelAsReferenced}{##1}%
-			}{}%
-			\csuse{autonum@reference#1Old}{##1}%
+			}%
 		}%
-	}{%
-		\csdef{#1}##1{%
-			\csuse{#2}{\protect\autonum@markLabelAsReferenced}{##1}%
-			\csuse{autonum@reference#1Old}{##1}%
-		}%
+		\csuse{autonum@reference#1Old}{##1}%
 	}%
 }
 %    \end{macrocode}

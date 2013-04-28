@@ -58,7 +58,7 @@
 			\begin{equation}\label{long}
 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
 			\end{equation}
-		\item Printing the number without referencing
+		\item Printing the number without referencing (needs autonum)
 			\begin{equation+}
 				E = mgh
 			\end{equation+}
@@ -82,7 +82,7 @@
 				cr = ef
 			\end{equation}
 			\cref{crefOne,crefTwo}
-		\item Using otherwise unused cref with two arguments
+		\item Using otherwise unused cref with two arguments (needs autonum)
 			\[\label{crefThree}
 				cr = ef
 			\]
@@ -124,11 +124,11 @@
 			\end{alignat}
 		\item short one-line shortcut \[n\]
 % 		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
-		\item align, numbering always \begin{align+} a=l \end{align+}
-		\item gather, numbering always \begin{gather+} g=a \end{gather+}
-		\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+}
-		\item equation, numbering always \begin{equation+} e=q \end{equation+}
-		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \]
+		\item align, numbering always \begin{align+} a=l \end{align+} (needs autonum)
+		\item gather, numbering always \begin{gather+} g=a \end{gather+} (needs autonum)
+		\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+} (needs autonum)
+		\item equation, numbering always \begin{equation+} e=q \end{equation+} (needs autonum)
+		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
 % 		\item super-short \[\(a+b\\d+e\)\]
 % 		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
