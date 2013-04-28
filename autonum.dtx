@@ -186,8 +186,20 @@ and the derived files           autonum.ins,
 % To get the correct references up to three compilation runs are necessary when the autonum package is used (as always in \TeX\ this cannot be guaranteed, so in rare cases even that is not enough). This is one additional run compared to the default referencing mode, as one run is needed to check if an equation is used. This is probably not avoidable, as the information which equation should have a number is simply not always available in the first run while layouting the equation. Thus, the equation's number can change in the second run. For the reference command, this information is only stable in the third run, as the equations influence each other.
 %\end{macro}
 %
-% \begin{macro}{\[ et al.}
+% \begin{macro}{align et al.}
 % Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{flalign}. ^^A, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
+% The label must be given after the equation but before the newline command, e.g.
+%
+% \vspace{0.5em}
+% \noindent\cmd{\begin\{align\}}\\
+% \indent \texttt{a}\cmd{\label\{firstLabel\}}\texttt{\textbackslash\textbackslash}\\
+% \indent \texttt{b}\cmd{\label\{secondLabel\}}\\
+% \cmd{\end\{align\}}\\
+% \vspace{0.5em}
+%
+% \end{macro}
+
+% \begin{macro}{\[ and \]}
 % As the commands \cmd{\[} and \cmd{\]} are useless when using autonum, they are redefined to be an alias of \texttt{begin\{equation\}} and \texttt{end\{equation\}}, respectively. ^^A, instead either the \texttt{equation} or the \texttt{align} environments are used, depending on the number of lines in the equation.
 % Without adding labels or referencing added labels, the new \cmd{\[}-\cmd{\]}-environment behaves like the old one. ^^A if the equation is only one line. The new definition inherits all the multi-line and alignment capabilities from align and thus is recommended as default while writing. If the environment's content has only one line, the equation environment is used, which has a \href{http://tex.stackexchange.com/questions/321/align-vs-equation}{smaller vertical space} for short lines above the environment compared to align.
 % \end{macro}
