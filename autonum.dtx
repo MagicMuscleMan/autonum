@@ -90,6 +90,7 @@ and the derived files           autonum.ins,
 \RequirePackage{etoolbox}
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
+\RequirePackage{letltxmacro}
 %</package>
 %<*driver>
 \documentclass{ltxdoc}
@@ -355,6 +356,41 @@ and the derived files           autonum.ins,
 \def\csxdefall#1#2{%
 	\csxdefaux{#1}{#2}%
 	\csxdef{#1}{#2}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\csLetLtxMacro}
+% This command simply combines the functionality from \cmd{\cslet} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd{\csLetLtxMacro}[2]{%
+	\expandafter\LetLtxMacro\csname#1\endcsname#2%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\LetcsLtxMacro}
+% This command simply combines the functionality from \cmd{\letcs} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd{\LetcsLtxMacro}[2]{%
+	\ifcsdef{#2}{%
+		\expandafter\LetLtxMacro\expandafter#1\csname#2\endcsname
+	}{%
+		\undef#1%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\csLetcsLtxMacro}
+% This command simply combines the functionality from \cmd{\csletcs} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd*{\csLetcsLtxMacro}[2]{%
+	\ifcsdef{#2}{%
+		\expandafter\let\csname#1\expandafter\endcsname\csname#2\endcsname
+	}{%
+		\csundef{#1}%
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -688,7 +724,7 @@ and the derived files           autonum.ins,
 % This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
 %    \begin{macrocode}
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
-	\csletcs{autonum@reference#1Old}{#1}%
+	\csLetcsLtxMacro{autonum@reference#1Old}{#1}%
 %    \end{macrocode}
 		% Mark label as referenced and call the old reference command. Do not write in the PDF's TOC, as this would lead to a write inside of a write when, e.g., calling \cmd{\cref} inside of a section command. Also use \cmd{\vanishprotect} to avoid writing \cmd{\autonum@markLabelAsReferenced} into the aux file or similar files. This avoids errors after deactivating the autonum package.
 %    \begin{macrocode}
