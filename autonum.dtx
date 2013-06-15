@@ -319,6 +319,10 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item found a bug when using \cmd{\cref} inside the \cmd{\section} command when hyperref is loaded which lead to its fix
 %         \end{itemize}
+%     \item Michel Voßkuhle
+%         \begin{itemize}
+%             \item found a bug when using autonum together with the subcaption package due to the missing support of starred reference commands in autonum which lead to its fix
+%         \end{itemize}
 % \end{itemize}
 %
 %
@@ -409,13 +413,41 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\ifcsedef}
-% This command is similar to the \cmd{\ifcsdef} test from the package etoolbox, but the command sequence gets fully expanded before it is evaluated.. This command would be a candidate for inclusion into etoolbox.
+% This command is similar to the \cmd{\ifcsdef} test from the package etoolbox, but the command sequence gets fully expanded before it is evaluated. This command would be a candidate for inclusion into etoolbox.
 %    \begin{macrocode}
 \def\ifcsedef#1#2#3{%
 	\edef\autonum@ifcsedefTemp{#1}%
 	\expandafter\ifcsdef\expandafter{\autonum@ifcsedefTemp}{#2}{#3}%
 	\undef{\autonum@ifcsedefTemp}%
 }
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\ifstar}
+% This command is similar to the \cmd{\@ifstar} command from LaTeX, but it absorbs a token instead of peeking ahead. This command would be a candidate for inclusion into etoolbox.
+%    \begin{macrocode}
+% \def\ifstar#1#2#3{%
+% 	\ifstrequal{#1}{*}{#2}{#3}%
+% }
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\csDeclareDocumentCommand}
+% This command is a mixture of the \cmd{\csdef} command from the etoolbox package and the \cmd{\DeclareDocumentCommand} from the xparse package. This command would be a candidate for inclusion into xparse.
+%    \begin{macrocode}
+% \def\csDeclareDocumentCommand#1#2#3{%
+% 	\expandafter\DeclareDocumentCommand\csname #1\endcsname{#2}{#3}%
+% }
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@debug}
+% Activate and deactivate debugging by commenting and uncommenting the folowing code.
+%    \begin{macrocode}
+% \def\autonum@debug#1{%
+% 	\PackageWarning{autonum}{#1}%
+% }
+% \def\autonum@debug#1{}%
 %    \end{macrocode}
 %\end{macro}
 
@@ -724,19 +756,48 @@ and the derived files           autonum.ins,
 % This command can patch arbitrary reference commands. The patch logic can be different to patching the label command, as the references have to be patched only once, so optimizing for speed is counter-productive.
 %    \begin{macrocode}
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
+%    \end{macrocode}
+	% 	There might be reference commands, which have an optional argument. To support these, use \cmd{\csLetcsLtxMacro} instead of \cmd{\csletcs}.
+%    \begin{macrocode}
 	\csLetcsLtxMacro{autonum@reference#1Old}{#1}%
 %    \end{macrocode}
-		% Mark label as referenced and call the old reference command. Do not write in the PDF's TOC, as this would lead to a write inside of a write when, e.g., calling \cmd{\cref} inside of a section command. Also use \cmd{\vanishprotect} to avoid writing \cmd{\autonum@markLabelAsReferenced} into the aux file or similar files. This avoids errors after deactivating the autonum package.
+	% 	Do not absorb any arguments, yet, because every further processing must be protected and this is the simplest way to achieve protected processing. Something like using \cmd{\@ifstar} inside of a moving argument would otherwise be very hard or impossible. Unfortunately, a simple approach like \cmd{\csDeclareDocumentCommand\{\#1\}\{sm\}} does produce a not yet understood infinite recursion.
 %    \begin{macrocode}
-	\csdef{#1}##1{%
-		\skipInPDFTOC{%
-			\vanishprotect{%
-				\csuse{#2}{\protect\autonum@markLabelAsReferenced}{##1}%
-			}%
-		}%
-		\csuse{autonum@reference#1Old}{##1}%
+	\csdef{#1}{%
+%    \end{macrocode}
+		% Use protect, to avoid problems with sections and captions. This is the same trick that hyperref uses, which can be seen by executing \cmd{\show}\cmd{\ref}.
+%    \begin{macrocode}
+		\protect\autonum@processReference{autonum@reference#1Old}{#2}%
 	}%
 }
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@processReference}
+ % If the reference command supports a starred call, as \cmd{\ref} when loading hyperref does for example, the star must be supported, as well. This macro separates calls using a star from those not using one.
+%    \begin{macrocode}
+\def\autonum@processReference#1#2{%
+	\@ifstar{%
+		\autonum@processReferenceHelper{#1}{#2}{*}%
+	}{%
+		\autonum@processReferenceHelper{#1}{#2}{}%
+	}%
+}%
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@processReference}
+ % Mark label as referenced and call the old reference command. Do not write in the PDF's TOC, as this would lead to a write inside of a write when, e.g., calling \cmd{\cref} inside of a section command. Also use \cmd{\vanishprotect} to avoid writing \cmd{\autonum@markLabelAsReferenced} into the aux file or similar files. This avoids errors after deactivating the autonum package.
+%    \begin{macrocode}
+% \autonum@processReferenceHelper{reference command name}{extraction command name}{star or empty}{label}
+\def\autonum@processReferenceHelper#1#2#3#4{%
+	\skipInPDFTOC{%
+		\vanishprotect{%
+			\csuse{#2}{\protect\autonum@markLabelAsReferenced}{#4}%
+		}%
+	}%
+	\csuse{#1}#3{#4}%
+}%
 %    \end{macrocode}
 %\end{macro}
 

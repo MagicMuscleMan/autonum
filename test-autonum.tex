@@ -24,6 +24,7 @@
 % % \stop
 % \begin{equation}\label{ee}b\end{equation}
 	\section*{Tests}
+	Additionally test, that deactivating the package does not reuslt in compile errors during the next run if only basic features are used.
 	\begin{itemize}
 		\item Having a referenced equation with reference before \ref{referenceBefore}
 			\begin{equation}\label{referenceBefore}
@@ -53,6 +54,14 @@
 		\item Check for spurious whitespace around reference (\ref{checkWhitespace})
 			\begin{equation}\label{checkWhitespace}
 				b_c
+			\end{equation}
+		\item Check if the starred version of ref does also work (\ref*{checkStarred})
+			\begin{equation}\label{checkStarred}
+				c_D
+			\end{equation}
+		\item Check if the starred version of cref does also work (\cref*{checkStarredCref})
+			\begin{equation}\label{checkStarredCref}
+				d_E
 			\end{equation}
 		\item Placing the number in long equations \ref{long}
 			\begin{equation}\label{long}
