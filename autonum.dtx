@@ -265,6 +265,8 @@ and the derived files           autonum.ins,
 %
 % \section{Further Ideas}
 % \begin{itemize}
+% \item For equations with multiple lines, which have a width close to the linewidth, but whose width at the middle/end is not so large, the equation number should not be set below the equation but next to the equation as it is done if the equation is smaller.
+% \item Every label and every reference string could be transformed by \cmd{\pdfmdfivesum} if pdftex and inputenc with utf8 are used. This would enable support for all sort of special characters
 % \item A similar approach could be used for figure and table environments to print a warning, if such an environment is not referenced. With the subfig package, the solution would be harder, as a figure or table may be unreferenced, if all subfloats are referenced. Similarly, a subfloat may be unreferenced, if its parent environment is referenced. So the warning should only be printed if an unreferenced parent environment either does not have any child environment or if there is an unreferenced child environment.
 % \item A warning could be printed, if another compile is necessary.
 % \item A "*" could be used instead of a "+".

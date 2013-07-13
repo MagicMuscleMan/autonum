@@ -1,5 +1,8 @@
 \documentclass{article}
 
+% \usepackage[english,ngerman]{babel}
+% \usepackage[utf8]{inputenx}
+
 \usepackage{amsmath}
 \usepackage[hypertexnames=false]{hyperref}
 \usepackage{cleveref}
@@ -24,8 +27,9 @@
 % % \stop
 % \begin{equation}\label{ee}b\end{equation}
 	\section*{Tests}
-	Additionally test, that deactivating the package does not reuslt in compile errors during the next run if only basic features are used.
 	\begin{itemize}
+		\item Additionally test, that deactivating the package does not reuslt in compile errors during the next run if only basic features are used.
+		\item Additionally test, that everything works with and without the above inputenx package (after deactivating the very strange label below).
 		\item Having a referenced equation with reference before \ref{referenceBefore}
 			\begin{equation}\label{referenceBefore}
 				d - d = 0
@@ -47,9 +51,17 @@
 			\begin{equation}\label{unreferenced}
 				\sqrt{a}
 			\end{equation}
-		\item Having a labeled equation with a very strange label \ref{äöüÄÖÜß?:, 3075µ!/§}
+		\item Having a labeled equation with a very strange label \ref{äöüÄÖÜß?:, 3075µ!/§} does only work without package inputenx
 			\begin{equation}\label{äöüÄÖÜß?:, 3075µ!/§}
 				\sqrt{b}
+			\end{equation}
+		\item Having a labeled equation with a colon in the label \ref{label:colon}
+			\begin{equation}\label{label:colon}
+				\sqrt{c}
+			\end{equation}
+		\item Having a labeled equation with umlauts in the label \ref{äöüÄÖÜßLabel}
+			\begin{equation}\label{äöüÄÖÜßLabel}
+				\sqrt{c}
 			\end{equation}
 		\item Check for spurious whitespace around reference (\ref{checkWhitespace})
 			\begin{equation}\label{checkWhitespace}
@@ -165,4 +177,3 @@
 \tableofcontents
 \listoffigures
 \end{document}
-
