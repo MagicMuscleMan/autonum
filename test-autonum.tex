@@ -2,6 +2,7 @@
 
 % \usepackage[english,ngerman]{babel}
 % \usepackage[utf8]{inputenx}
+% \usepackage[utf8x]{inputenx}
 
 \usepackage{amsmath}
 \usepackage[hypertexnames=false]{hyperref}
@@ -12,6 +13,19 @@
 \renewcommand{\theHequation}{\thechapter.\arabic{Hequation}}
 \makeatletter
 \g@addto@macro\equation{\stepcounter{Hequation}}
+
+\@ifpackageloaded{autonum}{%
+	\def\ifautonum#1{#1}%
+}{%
+	\def\ifautonum#1{}%
+}
+
+\@ifpackageloaded{cleveref}{%
+	\def\ifcleveref#1{#1}%
+}{%
+	\def\ifcleveref#1{}%
+}
+
 \makeatother
 
 \begin{document}
@@ -28,8 +42,8 @@
 % \begin{equation}\label{ee}b\end{equation}
 	\section*{Tests}
 	\begin{itemize}
-		\item Additionally test, that deactivating the package does not reuslt in compile errors during the next run if only basic features are used.
-		\item Additionally test, that everything works with and without the above inputenx package (after deactivating the very strange label below).
+		\item Additionally, test that deactivating the package does not result in compile errors during the next run if only basic features are used.
+		\item Additionally, test that everything works with and without the above inputenx package (after deactivating the very strange label below).
 		\item Having a referenced equation with reference before \ref{referenceBefore}
 			\begin{equation}\label{referenceBefore}
 				d - d = 0
@@ -71,46 +85,54 @@
 			\begin{equation}\label{checkStarred}
 				c_D
 			\end{equation}
-		\item Check if the starred version of cref does also work (\cref*{checkStarredCref})
-			\begin{equation}\label{checkStarredCref}
-				d_E
-			\end{equation}
+		\ifcleveref{
+			\item Check if the starred version of cref does also work (\cref*{checkStarredCref})
+				\begin{equation}\label{checkStarredCref}
+					d_E
+				\end{equation}
+		}
 		\item Placing the number in long equations \ref{long}
 			\begin{equation}\label{long}
 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
 			\end{equation}
-		\item Printing the number without referencing (needs autonum)
-			\begin{equation+}
-				E = mgh
-			\end{equation+}
+		\ifautonum{
+			\item Printing the number without referencing (needs autonum)
+				\begin{equation+}
+					E = mgh
+				\end{equation+}
+		}
 		\item Using a ref inside a caption
 			\begin{figure}
 				ref
 				\caption{\ref{long}}
 			\end{figure}
-		\item Using a cref inside a caption
-			\begin{figure}
-				cref
-				\caption{\cref{long}}
-			\end{figure}
-		\item Using cref with one argument
-			\begin{equation}\label{crefOne}
-				g
-			\end{equation}
-			\cref{crefOne}
-		\item Using cref with two arguments
-			\begin{equation}\label{crefTwo}
-				cr = ef
-			\end{equation}
-			\cref{crefOne,crefTwo}
-		\item Using otherwise unused cref with two arguments (needs autonum)
-			\[\label{crefThree}
-				cr = ef
-			\]
-			\[\label{crefFour}
-				cr = ef
-			\]
-			\cref{crefThree,crefFour}
+		\ifcleveref{
+			\item Using a cref inside a caption
+				\begin{figure}
+					cref
+					\caption{\cref{long}}
+				\end{figure}
+			\item Using cref with one argument
+				\begin{equation}\label{crefOne}
+					g
+				\end{equation}
+				\cref{crefOne}
+			\item Using cref with two arguments
+				\begin{equation}\label{crefTwo}
+					cr = ef
+				\end{equation}
+				\cref{crefOne,crefTwo}
+			\ifautonum{
+				\item Using otherwise unused cref with two arguments (needs autonum)
+					\[\label{crefThree}
+						cr = ef
+					\]
+					\[\label{crefFour}
+						cr = ef
+					\]
+					\cref{crefThree,crefFour}
+			}
+		}
 		\item Using align \ref{alignOne}, \ref{alignThree}
 			\begin{align}
 				a\label{alignOne}\\
@@ -145,10 +167,12 @@
 			\end{alignat}
 		\item short one-line shortcut \[n\]
 % 		\item shortcut environment with two lines, referencing \ref{firstShortcut} \[n_1\label{firstShortcut} \\ n_2\]
-		\item align, numbering always \begin{align+} a=l \end{align+} (needs autonum)
-		\item gather, numbering always \begin{gather+} g=a \end{gather+} (needs autonum)
-		\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+} (needs autonum)
-		\item equation, numbering always \begin{equation+} e=q \end{equation+} (needs autonum)
+		\ifautonum{
+			\item align, numbering always \begin{align+} a=l \end{align+} (needs autonum)
+			\item gather, numbering always \begin{gather+} g=a \end{gather+} (needs autonum)
+			\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+} (needs autonum)
+			\item equation, numbering always \begin{equation+} e=q \end{equation+} (needs autonum)
+		}
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
 % 		\item super-short \[\(a+b\\d+e\)\]
@@ -170,10 +194,12 @@
 % 			\end{equation}
 	\end{itemize}
 	\section{Using ref in section \ref{i1}}\label{i1} text
-	\section{Using cref in \cref{i2}}\label{i2} text
-	\begin{figure}
-		\caption{Ref 2: \cref{i2} and \ref{i2}}
-	\end{figure}
+	\ifcleveref{
+		\section{Using cref in \cref{i2}}\label{i2} text
+		\begin{figure}
+			\caption{Ref 2: \cref{i2} and \ref{i2}}
+		\end{figure}
+	}
 \tableofcontents
 \listoffigures
 \end{document}
