@@ -350,9 +350,14 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 		% The commented and the uncommented lines should do the same. The longer variant has the advantage, that there is no error the first run after the deactivation of the autonum package, as \cmd{\xdef}, read from the aux file, is always a known command, whereas \cmd{\csxdef} might not be known in that case, as with the deactivation of autonum it might happen, that etoolbox is not loaded anymore, too.
 %    \begin{macrocode}
-% 		\csxdef{\detokenize{#1}}{#2}%
-		\expandafter\string\expandafter\xdef\expandafter\string\csname #1\endcsname{#2}%
+		\csxdef{\detokenize{#1}}{#2}%
 	}%
+}
+%    \end{macrocode}
+% Do not abort compilation, if the package has been deactivated from the last compilation to the current one and thus \cmd{\csxdef} might have become undefined (as etoolbox might not be loaded anymore). Therefore, add a dummy implementation of \cmd{\csxdef} to the aux file, which gets loaded if the real implementation is not available any longer.
+%    \begin{macrocode}
+\protected@write\@mainaux{}{%
+	\string\providecommand\string\csxdef[2]{}%
 }
 %    \end{macrocode}
 %\end{macro}

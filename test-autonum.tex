@@ -14,6 +14,8 @@
 \makeatletter
 \g@addto@macro\equation{\stepcounter{Hequation}}
 
+\listfiles
+
 \@ifpackageloaded{autonum}{%
 	\def\ifautonum#1{#1}%
 }{%
@@ -75,8 +77,13 @@
 			\end{equation}
 		\item Having an equation with a following label with a colon in the label \ref{labelAfter:colon}
 			\begin{equation}
-				\sqrt{c}\label{labelAfter:colon}
+				\sqrt{d}\label{labelAfter:colon}
 			\end{equation}
+		\item Having an equation with a following label with a colon in the label
+			\begin{equation}
+				\sqrt{e}\label{referenceAfter:colon}
+			\end{equation}
+			and referencing \ref{referenceAfter:colon} only afterwards
 		\item Having a labeled equation with umlauts in the label \ref{äöüÄÖÜßLabel}
 			\begin{equation}\label{äöüÄÖÜßLabel}
 				\sqrt{c}
