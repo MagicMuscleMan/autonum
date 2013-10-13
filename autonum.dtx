@@ -290,6 +290,7 @@ and the derived files           autonum.ins,
 %     \item Joseph Wright
 %         \begin{itemize}
 %             \item created a \href{http://tex.stackexchange.com/a/64271/7323}{correctly working} \cmd{\csxdefaux} what lead to the support of special characters
+%             \item sent an MWE showing a regression in the support of special characters what lead to its fix
 %         \end{itemize}
 %     \item Jonas Nyrup
 %         \begin{itemize}
@@ -325,6 +326,11 @@ and the derived files           autonum.ins,
 %     \item Michel Voßkuhle
 %         \begin{itemize}
 %             \item found a bug when using autonum together with the subcaption package due to the missing support of starred reference commands in autonum which lead to its fix
+%             \item sent an MWE showing a regression in the support of special characters what lead to its fix
+%         \end{itemize}
+%     \item Pascal Germroth
+%         \begin{itemize}
+%             \item sent an MWE showing a regression in the support of special characters what lead to its fix
 %         \end{itemize}
 % \end{itemize}
 %
@@ -791,6 +797,15 @@ and the derived files           autonum.ins,
 		\autonum@processReferenceHelper{#1}{#2}{}%
 	}%
 }%
+%    \end{macrocode}
+% Do not abort compilation, if the package has been deactivated from the last compilation to the current one and thus the table of content or the list of figure files might reference the now undefined \cmd{\autonum@processReference} command. Therefore, add a dummy implementation to both files, which gets loaded if the real implementation is not available any longer. The dummy implementation is only written, if the respective files exist (are otherwise used).
+%    \begin{macrocode}
+\addtocontents{toc}{%
+	\string\providecommand\string\autonum@processReference[2]{}%
+}
+\addtocontents{lof}{%
+	\string\providecommand\string\autonum@processReference[2]{}%
+}
 %    \end{macrocode}
 %\end{macro}
 
