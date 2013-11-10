@@ -218,7 +218,7 @@ and the derived files           autonum.ins,
 %
 % \section{Compatibility}
 % \subsection{Load Order}
-% As other packages might break autonum, it should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advanced math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum, as cleveref may not be loaded after amsmath. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors.  The support of autonum without amsmath has been discontinued due to missing demand.
+% As other packages might break autonum, it should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advanced math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum, as cleveref must not be loaded after amsmath. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors.  The support of autonum without amsmath has been discontinued due to missing demand.
 %
 % \subsection{Hyperref}
 % The hyperref package must be loaded with the option \texttt{hypertexnames=false} to work when autonum is used.\\
