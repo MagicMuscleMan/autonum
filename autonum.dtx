@@ -651,7 +651,11 @@ and the derived files           autonum.ins,
 % Patch the label command, as some special data has to be saved with each usage. In order to support multi-line equations, the counter must be increased in every line, as every line is a possible reference target. Therefore, \\ has to be overwritten, too. This must be global, as amsmath is very annoying with overwriting local definitions, e.g. in align environments.
 %    \begin{macrocode}
 \def\autonum@patchSubcommands#1{%
-	\global\letcs{\label}{autonum@patched#1Label}%
+%    \end{macrocode}
+	% The following two lines seem to do the same and both activate the patched label command. As the second one should, in theory, be superior in case of an optional argument for the \cmd{\label} command, use this one.
+%    \begin{macrocode}
+% 	\global\letcs{\label}{autonum@patched#1Label}%
+	\expandafter\GlobalLetLtxMacro\expandafter\label\csname autonum@patched#1Label\endcsname
 %    \end{macrocode}
 	% Do not patch the newline command in a multline environment, as only the last line may get a \cmd{\notag} command, because all lines basically build one equation (see also amsmath's documentation, section 3.3).
 %    \begin{macrocode}
@@ -667,7 +671,7 @@ and the derived files           autonum.ins,
 % Restore the newline and label commands. This must be global, as it had been overwritten globally in \cmd{\autonum@patchSubcommands}.
 %    \begin{macrocode}
 \def\autonum@restoreSubcommands{%
-	\global\let\label\autonum@labelNormal%
+	\GlobalLetLtxMacro{\label}{\autonum@labelNormal}%
 	\global\let\\\autonum@newlineNormal%
 }
 %    \end{macrocode}
@@ -677,25 +681,35 @@ and the derived files           autonum.ins,
 % Use an extra command to patch the used label command for efficiency.
 %    \begin{macrocode}
 \def\autonum@generatePatchedLabel#1{%
-	\csdef{autonum@patched#1Label}##1{%
-	%    \end{macrocode}
+%    \end{macrocode}
+	% As the \cmd{\label} command can have an optional argument (see cleveref: Overriding the Cross-Reference Type), it must be supported in the patched version of the command, too. As the basic version of \cmd{\label} does not support an optional argument (see texdoc source2e), inside of the following macro the label command must not be called with a possible empty optional argument unconditionally. Instead, there must be a test if an optional argument has been provided and only then it must be used in the call of the original label command. Use the trick with the \href{http://tex.stackexchange.com/a/60896}{empty macro} as a test.
+%    \begin{macrocode}
+	\expandafter\newcommand\csname autonum@patched#1Label\endcsname[2][\@empty]{%
+%    \end{macrocode}
 		% The labeling information is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
-	%    \begin{macrocode}
+%    \begin{macrocode}
 		\ifdef{\autonum@currentLabel}{%
 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
 		}{%
-			\def\autonum@currentLabel{##1}%
+			\def\autonum@currentLabel{##2}%
 		}%
 %    \end{macrocode}
 		% Only call the original label command if the label gets referenced. This obviously is identical if the reference is located before the label. It is also identical if the reference is located after the label, as the \cmd{\\} or \cmd{\endenvironment} commands which follow the \cmd{\label} would suppress the numbering anyway in the first pass. In the second pass, the information about referencing is the same as if only the content of the following if-command were available.
 %    \begin{macrocode}
-		\ifcsedef{autonum@##1Referenced}{%
+		\ifcsedef{autonum@##2Referenced}{%
 %    \end{macrocode}
 		% The environment's original label command is called to do the real labeling. As it checks for erroneous succeeding labels using \cmd{df@label}, this variable has to be emptied before every call.
 %    \begin{macrocode}
 			\let\df@label\@empty%
-			\csuse{autonum@label#1}{##1}%
-		}{}
+%    \end{macrocode}
+			% If the following test is true, \cmd{\label} has been called without optional argument, as the default has been used internally.
+%    \begin{macrocode}
+			\ifx\@empty##1\relax
+				\csuse{autonum@label#1}{##2}%
+			\else
+				\csuse{autonum@label#1}[##1]{##2}%
+			\fi
+		}{}%
 	}%
 }
 %    \end{macrocode}

@@ -24,6 +24,7 @@
 
 \@ifpackageloaded{cleveref}{%
 	\def\ifcleveref#1{#1}%
+	\crefname{inequation}{ineq.}{ineqs.}
 }{%
 	\def\ifcleveref#1{}%
 }
@@ -143,6 +144,14 @@
 					\]
 					\cref{crefThree,crefFour}
 			}
+			\item Using cref with a custom type \cref{myInequation} and thus an optional argument in the label command
+				\begin{equation}\label[inequation]{myInequation}
+					a < b
+				\end{equation}
+			\item Using an unused cref with a custom type and thus an optional argument in the label command
+				\begin{equation}\label[inequation]{myUnusedInequation}
+					d < c
+				\end{equation}
 		}
 		\item Using align \ref{alignOne}, \ref{alignThree}
 			\begin{align}
