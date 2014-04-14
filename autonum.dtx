@@ -483,6 +483,7 @@ and the derived files           autonum.ins,
 	\newlength{\autonum@environmentWidth}%
 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
+	\autonum@patchBlockEnvironment{split}%
 %    \end{macrocode}
 	%
 	% Patch the environment delimited by \cmd{\[} and \cmd{\]}.
@@ -517,7 +518,7 @@ and the derived files           autonum.ins,
 	\autonum@patchEnvironmentHelper{#1}{1}%
 }
 \def\autonum@patchBlockEnvironment#1{%
-	\autonum@saveEnvironmentSubcommands{#1}{equation*}{}%
+	\autonum@saveEnvironmentSubcommands{#1}{equation}{}%
 	\autonum@patchEnvironmentHelper{#1}{0}%
 }
 \def\autonum@patchEnvironmentHelper#1#2{%

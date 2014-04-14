@@ -1,5 +1,18 @@
 \documentclass{article}
 
+% Make this document look like endless paper to avoid page breaks, which make some of the tests useless.
+% See http://tex.stackexchange.com/a/27057/7323
+\usepackage{geometry}
+\geometry{paperwidth=20cm,paperheight=\maxdimen,margin=4cm}
+\usepackage{etoolbox}
+\AtBeginDocument{
+  \setbox0=\vbox\bgroup
+  \preto\enddocument{\egroup
+    \dimen0=\dp0
+    \pdfpageheight=\dimexpr\ht0+10cm\relax
+    \unvbox0\kern-\dimen0 }
+}
+
 % \usepackage[english,ngerman]{babel}
 % \usepackage[utf8]{inputenx}
 % \usepackage[utf8x]{inputenx}
@@ -212,6 +225,39 @@
 % 					c\label{gatheredThree}
 % 				\end{gathered}
 % 			\end{equation}
+% 		\item Placing no number in long equations
+% 			\begin{equation}
+% 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
+% 			\end{equation}
+		\item Split with a long line and a \texttt{\textbackslash notag} after ending split has too much spacing afterwards, if the split environment is not patched:
+			\begin{equation}
+				\begin{split}
+					\sum_1^2 a &= 2a\\
+							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+				\end{split}\notag
+			\end{equation}
+		\item Split with a long line and a \texttt{\textbackslash notag} before ending split has correct spacing afterwards:
+			\begin{equation}
+				\begin{split}
+					\sum_1^2 a &= 2a\\
+							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\notag
+				\end{split}
+			\end{equation}
+		\item Split with a long line should have correct spacing afterwards automatically:
+			\begin{equation}
+				\begin{split}
+					\sum_1^2 a &= 2a\\
+							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+				\end{split}
+			\end{equation}
+		\item Split with a long line should have long spacing afterwards if it is referenced \ref{splitLong}:
+			\begin{equation}\label{splitLong}
+				\begin{split}
+					\sum_1^2 a &= 2a\\
+							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+				\end{split}
+			\end{equation}
+			Note, that the \texttt{\textbackslash label} must not be put inside the \texttt{split} environment, as according to the \AmS-math documentation \texttt{split} provides no numbering.
 	\end{itemize}
 	\section{Using ref in section \ref{i1}}\label{i1} text
 	\ifcleveref{
