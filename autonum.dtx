@@ -334,6 +334,10 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item sent an MWE showing a regression in the support of special characters what lead to its fix
 %         \end{itemize}
+%     \item Vladimir Pozdyayev
+%         \begin{itemize}
+%             \item found an error if an equation is used inside of a figure environment, which has not been fixed, yet
+%         \end{itemize}
 % \end{itemize}
 %
 %
@@ -481,6 +485,7 @@ and the derived files           autonum.ins,
 	% If align is redefined before flalign or alignat, autonum.dtx does not build anymore. The error reason is unknown. As the error disappears when align is redefined after both, there is no motivation in finding the underlying problem.
 %    \begin{macrocode}
 	\newlength{\autonum@environmentWidth}%
+% 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat,figure}%
 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
 	\autonum@patchBlockEnvironment{split}%

@@ -1,0 +1,52 @@
+\documentclass[12pt]{book}
+
+\usepackage{caption}
+\usepackage{autonum}
+
+\begin{document}
+
+	\makeatletter
+	\autonum@patchParametrizedFullEnvironment{figure}%
+% 	\autonum@patchFullEnvironment{figure}%
+	\makeatother
+
+\ref{eq1}, \ref{fig1}, \ref{eq2}, \ref{fig2}, \ref{sec:xyz}
+
+\begin{figure}[ht]
+\begin{align}\label{eq1}
+x=y
+\end{align}
+\caption{Caption}
+\label{fig1}
+\end{figure}
+
+\subsection{Title}
+\label{sec:xyz}
+
+\begin{figure}[ht]
+\begin{align}\label{eq2}
+y=z
+\end{align}
+\caption{Caption}
+\label{fig2}
+\end{figure}
+
+
+\end{document}
+
+
+% \documentclass{article}
+% \usepackage{caption}
+% \usepackage{autonum}
+% 
+% \begin{document}
+% 	\begin{figure}
+% 		\begin{align}
+% 			a
+% 		\end{align}
+% 	\end{figure}
+% 	\begin{figure}
+% 		b
+% 		\label{fig2}
+% 	\end{figure}
+% \end{document}
