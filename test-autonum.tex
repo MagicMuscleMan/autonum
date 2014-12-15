@@ -209,6 +209,46 @@
 		}
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
+		\item align and split with the label defined before the split environment \ref{splitAlign}
+			\makeatletter
+			\begin{align}
+				\label{splitAlign}
+				\begin{split}
+					s
+				\end{split}
+			\end{align}
+			\ifdef{\autonum@currentLabel}{TEST FEHLGESCHLAGEN!}{}
+			\makeatother
+		\item Align with split and non-split (should have two lines)
+			\begin{align}
+				\begin{split}
+					\text{line 1}
+				\end{split}
+				\\
+				\text{line 2}
+			\end{align}
+		\item Align with non-split and split (should have two lines)
+			\begin{align}
+				\text{line 1}
+				\\
+				\begin{split}
+					\text{line 2}
+				\end{split}
+			\end{align}
+		\item Align with two splits (should have four lines: \ref{firstSplit,secondSplit})
+			\begin{align}
+				\begin{split}
+					\text{line 1}
+					\\
+					\text{line 2}
+				\end{split}\label{firstSplit}
+				\\
+				\begin{split}
+					\text{line 3}
+					\\
+					\text{line 4}
+				\end{split}\label{secondSplit}
+			\end{align}
 % 		\item super-short \[\(a+b\\d+e\)\]
 % 		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
 % 			\begin{equation}
@@ -230,28 +270,28 @@
 % 			\begin{equation}
 % 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
 % 			\end{equation}
-		\item Split with a long line and a \texttt{\textbackslash notag} after ending split has too much spacing afterwards, if the split environment is not patched:
+		\item Split with a long line and a \texttt{\textbackslash notag} after ending split has too much spacing below the environment, if the split environment is not patched:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 				\end{split}\notag
 			\end{equation}
-		\item Split with a long line and a \texttt{\textbackslash notag} before ending split has correct spacing afterwards:
+		\item Split with a long line and a \texttt{\textbackslash notag} before ending split has correct spacing below the environment:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\notag
 				\end{split}
 			\end{equation}
-		\item Split with a long line should have correct spacing afterwards automatically:
+		\item Split with a long line should have correct spacing below the environment automatically:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 				\end{split}
 			\end{equation}
-		\item Split with a long line should have long spacing afterwards if it is referenced \ref{splitLong}:
+		\item Split with a long line should have long spacing below the environment if it is referenced \ref{splitLong}:
 			\begin{equation}\label{splitLong}
 				\begin{split}
 					\sum_1^2 a &= 2a\\

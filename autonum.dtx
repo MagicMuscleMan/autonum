@@ -489,7 +489,7 @@ and the derived files           autonum.ins,
 % 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat,figure}%
 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
-	\autonum@patchBlockEnvironment{split}%
+% 	\autonum@patchBlockEnvironment{split}%
 %    \end{macrocode}
 	%
 	% Patch the environment delimited by \cmd{\[} and \cmd{\]}.
@@ -647,7 +647,13 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 	\autonum@possiblyHideNumber
 	\csuse{autonum@end#1Old}%
-	\autonum@restoreSubcommands
+%    \end{macrocode}
+	% Restore the subcommands. Do not restore the subcommands for the split environment, as \cmd{autonum@startChangeEnvironment} is not called for the split environment due to yet unknown reasons. The hypothesis is, that this is as the split environment is inside of another environment (equation). Thus, \cmd{\renewenvironment} is called inside a group. As \cmd{\renewenvironment} is always local (see http://tex.stackexchange.com/q/51733), the redefinition of the split environment does not work. As the split subcommands are currently neither saved nor patched, it is not only unnecessary, but really harmful to restore the subcommands. Doing so breaks splits together with other material in an align environment. This code should be changed after the root problem has been fixed.
+%    \begin{macrocode}
+	\ifstrequal{#1}{split}{%
+	}{%
+		\autonum@restoreSubcommands
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
