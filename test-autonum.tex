@@ -270,14 +270,14 @@
 % 			\begin{equation}
 % 				\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum\sum a
 % 			\end{equation}
-		\item Split with a long line and a \texttt{\textbackslash notag} after ending split has too much spacing below the environment, if the split environment is not patched:
+		\item Split with a long line and a \textbackslash\texttt{notag} after ending split has too much spacing below the environment, if the split environment is not patched:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 				\end{split}\notag
 			\end{equation}
-		\item Split with a long line and a \texttt{\textbackslash notag} before ending split has correct spacing below the environment:
+		\item Split with a long line and a \textbackslash\texttt{notag} before ending split has correct spacing below the environment:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\
@@ -298,7 +298,7 @@
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 				\end{split}
 			\end{equation}
-			Note, that the \texttt{\textbackslash label} must not be put inside the \texttt{split} environment, as according to the \AmS-math documentation \texttt{split} provides no numbering.
+			Note, that the \textbackslash\texttt{label} must not be put inside the \texttt{split} environment, as according to the \AmS-math documentation \texttt{split} provides no numbering.
 	\end{itemize}
 	\section{Using ref in section \ref{i1}}\label{i1} text
 	\ifcleveref{
