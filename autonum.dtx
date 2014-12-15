@@ -483,7 +483,7 @@ and the derived files           autonum.ins,
 %^^A		\autonum@patchBlockEnvironment{multlined}%
 %^^A	}{}%
 %    \end{macrocode}
-	% If align is redefined before flalign or alignat, autonum.dtx does not build anymore. The error reason is unknown. As the error disappears when align is redefined after both, there is no motivation in finding the underlying problem.
+	% If align is redefined before flalign or alignat, autonum.dtx does not build anymore. The reason of the error is unknown. As the error disappears when align is redefined after both, there is no motivation in finding the underlying problem.
 %    \begin{macrocode}
 	\newlength{\autonum@environmentWidth}%
 % 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat,figure}%
@@ -643,7 +643,7 @@ and the derived files           autonum.ins,
 \def\autonum@endChangeEnvironment#1{%
 % 	\autonum@debug{endChangeEnvironment; 1=#1}%
 %    \end{macrocode}
-	% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
+	% Possibly hide the number of the last equation in the displayed equation environment and end the latter one.
 %    \begin{macrocode}
 	\autonum@possiblyHideNumber
 	\csuse{autonum@end#1Old}%
