@@ -708,14 +708,21 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 		\ifdef{\autonum@currentLabel}{%
 %    \end{macrocode}
-		% Currently deactivated, as there are problems when using a label inside an align environment before a split environment.
+			% Currently deactivated, as there are problems when using a label inside an align environment before a split environment.
 %    \begin{macrocode}
 % 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
 		}{%
 %    \end{macrocode}
-		% Define the label globally, as otherwise it gets deleted inside of an align environment if it is defined before a split environment and should be applied after the split environment. Thus, it is globally deleted when ending a math environment or a line in such an environment (always with the exception of the split environment).
+			% Define the label globally, as otherwise it gets deleted inside of an align environment if it is defined before a split environment and should be applied after the split environment. Thus, it is globally deleted when ending a math environment or a line in such an environment (always with the exception of the split environment).
 %    \begin{macrocode}
-			\global\def\autonum@currentLabel{##2}%
+			\ifboolexpr{test {\ifstrequal{#1}{flalign}} or test {\ifstrequal{#1}{alignat}}}{%
+%    \end{macrocode}
+				% Do not define the label globally for flalign and alignat environment, as it results in warnings. According to the amsmath documentation it's uncommon to use split inside of both environments, so this should be an accectable compromise. Deleting globally when only defining locally does not seem to be a problem.
+%    \begin{macrocode}
+				\def\autonum@currentLabel{##2}%
+			}{%
+				\global\def\autonum@currentLabel{##2}%
+			}%
 		}%
 %    \end{macrocode}
 		% Only call the original label command if the label gets referenced. This obviously is identical if the reference is located before the label. It is also identical if the reference is located after the label, as the \cmd{\\} or \cmd{\endenvironment} commands which follow the \cmd{\label} would suppress the numbering anyway in the first pass. In the second pass, the information about referencing is the same as if only the content of the following if-command were available.
