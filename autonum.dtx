@@ -708,9 +708,11 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 		\ifdef{\autonum@currentLabel}{%
 %    \end{macrocode}
-			% Currently deactivated, as there are problems when using a label inside an align environment before a split environment.
+			% As \cmd{\autonum@currentLabel} can be a global macro, there was a false positive error with math environments which are \href{http://tex.stackexchange.com/a/59088/7323}{executed twice}. To avoid this false positives, only check during the first run of these environments.
 %    \begin{macrocode}
-% 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
+			\ifmeasuring@
+				\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
+			\fi
 		}{%
 %    \end{macrocode}
 			% Define the label globally, as otherwise it gets deleted inside of an align environment if it is defined before a split environment and should be applied after the split environment. Thus, it is globally deleted when ending a math environment or a line in such an environment (always with the exception of the split environment).
