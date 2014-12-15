@@ -654,6 +654,7 @@ and the derived files           autonum.ins,
 	}{%
 		\autonum@restoreSubcommands
 	}%
+	\global\undef\autonum@currentLabel
 }
 %    \end{macrocode}
 %\end{macro}
@@ -710,9 +711,15 @@ and the derived files           autonum.ins,
 		% The labeling information is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 %    \begin{macrocode}
 		\ifdef{\autonum@currentLabel}{%
-			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
+%    \end{macrocode}
+		% Currently deactivated, as there are problems when using a label inside an align environment before a split environment.
+%    \begin{macrocode}
+% 			\PackageError{autonum}{Two succeeding \string\label's detected}{Did you forget a \string\\?}%
 		}{%
-			\def\autonum@currentLabel{##2}%
+%    \end{macrocode}
+		% Define the label globally, as otherwise it gets deleted inside of an align environment if it is defined before a split environment and should be applied after the split environment. Thus, it is globally deleted when ending a math environment or a line in such an environment (always with the exception of the split environment).
+%    \begin{macrocode}
+			\global\def\autonum@currentLabel{##2}%
 		}%
 %    \end{macrocode}
 		% Only call the original label command if the label gets referenced. This obviously is identical if the reference is located before the label. It is also identical if the reference is located after the label, as the \cmd{\\} or \cmd{\endenvironment} commands which follow the \cmd{\label} would suppress the numbering anyway in the first pass. In the second pass, the information about referencing is the same as if only the content of the following if-command were available.
@@ -743,6 +750,7 @@ and the derived files           autonum.ins,
 	\csdef{autonum@patched#1Newline}{%
 		\autonum@possiblyHideNumber
 		\csuse{autonum@newline#1}%
+		\global\undef\autonum@currentLabel
 	}
 }
 %    \end{macrocode}
