@@ -565,11 +565,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 				\ifboolexpr{not test {\ifstrequal{#1}{multline}} or test {\ifcsundef{autonum@label#1}}}{%
 					\global\cslet{autonum@label#1}{\label}%
-				}%
-%    \end{macrocode}
-				% Use \cmd{\notag} again, to avoid an error with the gathered environment. WTF?
-%    \begin{macrocode}
-				\notag
+				}{}%
 			\end{#1}%
 		\end{#2}%
 	\end{textblock}%
