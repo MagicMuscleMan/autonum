@@ -465,9 +465,9 @@ and the derived files           autonum.ins,
 %\begin{macro}{\autonum@debug}
 % Activate and deactivate debugging by commenting and uncommenting the folowing code.
 %    \begin{macrocode}
-% \def\autonum@debug#1{%
-% 	\PackageWarning{autonum}{#1}%
-% }
+\def\autonum@debug#1{%
+	\PackageWarning{autonum}{#1}%
+}
 % \def\autonum@debug#1{}%
 %    \end{macrocode}
 %\end{macro}
@@ -516,18 +516,22 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 % \def\autonum@patchEnvironment#1{
 \def\autonum@patchFullEnvironment#1{%
+% 	\autonum@debug{patchFullEnvironment; 1=#1}%
 	\autonum@saveEnvironmentSubcommands{#1}{center}{}%
 	\autonum@patchEnvironmentHelper{#1}{0}%
 }
 \def\autonum@patchParametrizedFullEnvironment#1{%
+% 	\autonum@debug{patchParametrizedFullEnvironment; 1=#1}%
 	\autonum@saveEnvironmentSubcommands{#1}{center}{1}%
 	\autonum@patchEnvironmentHelper{#1}{1}%
 }
 \def\autonum@patchBlockEnvironment#1{%
+% 	\autonum@debug{patchBlockEnvironment; 1=#1}%
 	\autonum@saveEnvironmentSubcommands{#1}{equation}{}%
 	\autonum@patchEnvironmentHelper{#1}{0}%
 }
 \def\autonum@patchEnvironmentHelper#1#2{%
+% 	\autonum@debug{patchEnvironmentHelper; 1=#1; 2=#2}%
 	\autonum@renameEnvironment{#1}{#2}%
 	\autonum@changeEnvironment{#1}{#2}%
 	\autonum@generatePatchedLabel{#1}%
@@ -592,6 +596,7 @@ and the derived files           autonum.ins,
 % Now change the environment. This command only supports displayed equation structures and is not suited for other environments (as e.g. figures). The second argument contains the number of arguments the redefined environment has.
 %    \begin{macrocode}
 \def\autonum@changeEnvironment#1#2{%
+% 	\autonum@debug{changeEnvironment; 1=#1; 2=#2}%
 %    \end{macrocode}
 		% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once. The following if is only needed to distinguish between environments without (e.g. equation) and with one parameter (e.g. alignat).
 %    \begin{macrocode}
@@ -621,6 +626,7 @@ and the derived files           autonum.ins,
 % Start the changed environment.
 %    \begin{macrocode}
 \def\autonum@startChangeEnvironment#1#2{%
+% 	\autonum@debug{startChangeEnvironment; 1=#1; 2=#2}%
 %    \end{macrocode}
 	% Prepare the label and the newline commands and begin the displayed equation environment.
 %    \begin{macrocode}
@@ -635,6 +641,7 @@ and the derived files           autonum.ins,
 % Close the changed environment.
 %    \begin{macrocode}
 \def\autonum@endChangeEnvironment#1{%
+% 	\autonum@debug{endChangeEnvironment; 1=#1}%
 %    \end{macrocode}
 	% Possibly hide the number of the last equation in the displayed equation environment, end the latter one and restore the subcommands.
 %    \begin{macrocode}
