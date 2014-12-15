@@ -302,7 +302,8 @@
 	\end{itemize}
 	\section{Using ref in section \ref{i1}}\label{i1} text
 	\ifcleveref{
-		\section{Using cref in \cref{i2}}\label{i2} text
+		% \cref with hyperref makes problems inside of \section: http://tex.stackexchange.com/a/138950. This seems to be unknown for cleveref's author according to 14.2 in cleveref's documentation. If it would be possible to detect that we are inside a moving argument, there could be an automatic solution.
+		\section{Using cref in \texorpdfstring{\cref{i2}}{Section \ref{i2}}}\label{i2} text
 		\begin{figure}
 			\caption{Ref 2: \cref{i2} and \ref{i2}}
 		\end{figure}
