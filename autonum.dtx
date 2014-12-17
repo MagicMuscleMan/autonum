@@ -758,7 +758,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% As the \cmd{\label} command can have an optional argument (see cleveref: Overriding the Cross-Reference Type), it must be supported in the patched version of the command, too. As the basic version of \cmd{\label} does not support an optional argument (see texdoc source2e), inside of the following macro the label command must not be called with a possible empty optional argument unconditionally. Instead, there must be a test if an optional argument has been provided and only then it must be used in the call of the original label command. Use the trick with the \href{http://tex.stackexchange.com/a/60896}{empty macro} as a test.
 %    \begin{macrocode}
-	\expandafter\newcommand\csname autonum@patched#1Label\endcsname[2][\@empty]{%
+	\newcommandsequence{autonum@patched#1Label}[2][]{%
 %    \end{macrocode}
 		% The labeling information is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 %    \begin{macrocode}
@@ -793,7 +793,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 			% If the following test is true, \cmd{\label} has been called without optional argument, as the default has been used internally.
 %    \begin{macrocode}
-			\ifx\@empty##1\relax
+			\if\relax\detokenize{##1}\relax
 				\csuse{autonum@label#1}{##2}%
 			\else
 				\csuse{autonum@label#1}[##1]{##2}%
@@ -808,9 +808,16 @@ and the derived files           autonum.ins,
 % This command generates patched newline commands for displayed math environments, so that they can simply be activated when needed.
 %    \begin{macrocode}
 \def\autonum@generatePatchedNewline#1{%
-	\csdef{autonum@patched#1Newline}{%
+%    \end{macrocode}
+% 	The \cmd{\\} command has an optional argument, e.g. in an align environment, to put some extra vertical space between two lines. Thus, the patched newline command must currectly cope with an optional argument, too, if it has been given.
+%    \begin{macrocode}
+	\newcommandsequence{autonum@patched#1Newline}[1][]{%
 		\autonum@possiblyHideNumber
-		\csuse{autonum@newline#1}%
+		\if\relax\detokenize{##1}\relax
+			\csuse{autonum@newline#1}%
+		\else
+			\csuse{autonum@newline#1}[##1]%
+		\fi
 		\global\undef\autonum@currentLabel
 	}%
 }

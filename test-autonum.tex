@@ -207,6 +207,12 @@
 			\item multline, numbering always (and avoiding overfull hbox warning) \begin{multline+} m=u\line(1,0){220}=v \end{multline+} (needs autonum)
 			\item equation, numbering always \begin{equation+} e=q \end{equation+} (needs autonum)
 		}
+		\item align with line breaks with extra spacing
+			\begin{align}
+				a
+				\\[\baselineskip]
+				b
+			\end{align}
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
 		\item align and split with the label defined before the split environment \ref{splitAlign}
