@@ -550,7 +550,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 
 %\begin{macro}{\autonum@patchEnvironment}
-% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name.  Do not redefine environment before getting the original label and newline commands. Use center as the default parameter, as a center environment is a neutral element regarding the subcommands' definitions.
+% Patch a mathematical environment to automatically show an equation's number, if a part is referenced and do not use a number otherwise. For completeness, the original definition (numbering every part of an displayed equation structure) is made available using a different name. Do not redefine the environments before getting the original label and newline commands. Use center as the default parameter, as a center environment is a neutral element regarding the subcommands' definitions.
 %    \begin{macrocode}
 % \def\autonum@patchEnvironment#1{
 \def\autonum@patchFullEnvironment#1{%
@@ -582,6 +582,7 @@ and the derived files           autonum.ins,
 % This macro saves the newline code used in a mathematic display environment so that it can be used later. This is necessary, as saving it in the instance of the environment, where it should be used, does not work. Allow for two arguments, to enable putting the alignment building blocks into an equation environment (see amsmath documentation). As a neutral element, the center environment can be used. The third argument is needed for environments which have arguments themself.
 %    \begin{macrocode}
 \def\autonum@saveEnvironmentSubcommands#1#2#3{%
+% 	\autonum@debug{In saveEnvironmentSubcommands; 1=#1; 2=#2; 3=#3}%
 	\begin{textblock}{1}[1,1](0,0)%
 		\begin{#2}%
 			\begin{#1}#3%
@@ -593,7 +594,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 				% Using global here is necessary to get the information out of the environment. As \cmd{\\} has an optional argument, you would think, that \cmd{\GlobalCsLetLtxMacro} is correct, while \cmd{\global}\cmd{\cslet} is incorrect (\href{http://tex.stackexchange.com/a/29837}{see here}). But although \cmd{\\} has an optional argument, it does not use \cmd{\newcommand} (see the definintion of \cmd{\Let@} in amsmath.sty for the details), but plain \cmd{\TeX}. Although using LetLtxMacro \href{http://tex.stackexchange.com/a/88007}{should never no harm}, it results in errors here, so it isn't used. 
 %    \begin{macrocode}
-				\global\cslet{autonum@newline#1}\\
+				\global\cslet{autonum@newline#1}\\%
 %    \end{macrocode}
 				% Use \cmd{\notag} to not increase the equation counter (otherwise the first equation shown would not have number 1).
 %    \begin{macrocode}
@@ -793,7 +794,7 @@ and the derived files           autonum.ins,
 		\autonum@possiblyHideNumber
 		\csuse{autonum@newline#1}%
 		\global\undef\autonum@currentLabel
-	}
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -805,13 +806,13 @@ and the derived files           autonum.ins,
 	\ifdef{\autonum@currentLabel}{%
 		\ifcsedef{autonum@\csuse{autonum@currentLabel}Referenced}{%
 		}{%
-			\notag%
+			\notag
 		}%
 %    \end{macrocode}
 		% The current label does not have to be cleaned, as every line is a separate cell \href{http://tex.stackexchange.com/q/58190}{defining a local group} in an displayed math environment.
 %    \begin{macrocode}
 	}{%
-		\notag%
+		\notag
 	}%
 }
 %    \end{macrocode}
