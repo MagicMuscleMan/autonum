@@ -484,34 +484,10 @@ and the derived files           autonum.ins,
 
 %\begin{macro}{\newcommandsequence}
 % This command combines the macro \cmd{\csdef} from the package etoolbox and \LaTeX's \cmd{\newcommand} macro. This command would be a candidate for inclusion into etoolbox or into LaTeX2e, although the former is much more likely.
-% The interface of \cmd{\newcommand} et al. is "moom" when using xparse syntax. Yet, \cmd{\newcommand} itself provides "ommm..." as interface, i.e. is not capable of defining itself. However, as all the argument types "m" and "o" are supported, combining multiple \cmd{\newcommand}s which read (curry) only part of the arguments are able to emulate the interface. This is done in the following.
+% The interface of \cmd{\newcommand} et al. is "moom" when using xparse syntax. Yet, \cmd{\newcommand} itself provides "ommm..." as interface, i.e. is not capable of defining itself. However, as all the argument types "m" and "o" are supported, combining multiple \cmd{\newcommand}s which read (curry) only part of the arguments are able to emulate the interface. Even simpler is the use of currying, as besides the first argument, everything is identical in \cmd{\newcommand} and \cmd{\newcommandsequence}. So the first arguments is read, and \cmd{\newcommand} is called to read the changed first argument and the rest.
 %    \begin{macrocode}
 \def\newcommandsequence#1{%
-	\def\autonum@commandName{#1}%
-	\autonum@readFirstOptional
-}
-\newcommand\autonum@readFirstOptional[1][0]{%
-	\edef\autonum@firstOptional{#1}%
-	\autonum@readRest
-}
-\newcommand\autonum@readRest[2][]{%
-	\autonum@debug{In readRest; commandName=\autonum@commandName; firstOptional=\autonum@firstOptional; 1=#1; 2=#2}%
-%    \end{macrocode}
-		% This test is from \href{http://tex.stackexchange.com/a/53091}{egreg}.
-%    \begin{macrocode}
-	\if\relax\detokenize{#1}\relax
-%    \end{macrocode}
-		% \cmd{\newcommand} expands its optional value according to tests, thus, there is no expansion needed for \cmd{\autonum@firstOptional}.
-%    \begin{macrocode}
-		\expandafter\newcommand\csname \autonum@commandName\endcsname[\autonum@firstOptional]{#2}%
-	\else
-		\expandafter\newcommand\csname \autonum@commandName\endcsname[\autonum@firstOptional][#1]{#2}%
-	\fi
-%    \end{macrocode}
-	% Delete the unneeded macros here and not at the end of the macros defined above. Otherwise, the \cmd{\undef} commands would be read as arguments in the current macro instead of the correct arguments.
-%    \begin{macrocode}
-% 	\undef\autonum@commandName
-% 	\undef\autonum@firstOptional
+	\expandafter\newcommand\csname #1\endcsname
 }
 % Tests:
 % \newcommandsequence{testcommand}{This is a test}%
