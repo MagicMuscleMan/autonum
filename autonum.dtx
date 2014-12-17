@@ -230,6 +230,9 @@ and the derived files           autonum.ins,
 % As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. Support for new reference commands can be added by executing\\
 % \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}.
 %
+% If the new reference command can have optional arguments, you should write instead\\
+% \cmd{\LetLtxMacro}\cmd{\ref}\cmd{\NewReferenceCommand}.
+%
 % If you want to use the power of \cmd{\cref} without getting rid of the habit of writing \cmd{\ref}, you can just add the following code to the preamble
 %
 % \vspace{0.5em}
@@ -385,19 +388,19 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\csLetLtxMacro}
+%\begin{macro}{\CsLetLtxMacro}
 % This command simply combines the functionality from \cmd{\cslet} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
 %    \begin{macrocode}
-\newrobustcmd{\csLetLtxMacro}[2]{%
+\newrobustcmd{\CsLetLtxMacro}[2]{%
 	\expandafter\LetLtxMacro\csname#1\endcsname#2%
 }
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\LetcsLtxMacro}
+%\begin{macro}{\LetCsLtxMacro}
 % This command simply combines the functionality from \cmd{\letcs} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
 %    \begin{macrocode}
-\newrobustcmd{\LetcsLtxMacro}[2]{%
+\newrobustcmd{\LetCsLtxMacro}[2]{%
 	\ifcsdef{#2}{%
 		\expandafter\LetLtxMacro\expandafter#1\csname#2\endcsname
 	}{%
@@ -407,12 +410,47 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
-%\begin{macro}{\csLetcsLtxMacro}
+%\begin{macro}{\CsLetCsLtxMacro}
 % This command simply combines the functionality from \cmd{\csletcs} and \cmd{\LetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
 %    \begin{macrocode}
-\newrobustcmd*{\csLetcsLtxMacro}[2]{%
+\newrobustcmd*{\CsLetCsLtxMacro}[2]{%
 	\ifcsdef{#2}{%
-		\expandafter\let\csname#1\expandafter\endcsname\csname#2\endcsname
+		\expandafter\LetLtxMacro\csname#1\expandafter\endcsname\csname#2\endcsname
+	}{%
+		\csundef{#1}%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\GlobalCsLetLtxMacro}
+% This command simply combines the functionality from \cmd{\cslet} and \cmd{\GlobalLetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd{\GlobalCsLetLtxMacro}[2]{%
+	\expandafter\GlobalLetLtxMacro\csname#1\endcsname#2%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\GlobalLetCsLtxMacro}
+% This command simply combines the functionality from \cmd{\letcs} and \cmd{\GlobalLetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd{\GlobalLetCsLtxMacro}[2]{%
+	\ifcsdef{#2}{%
+		\expandafter\GlobalLetLtxMacro\expandafter#1\csname#2\endcsname
+	}{%
+		\undef#1%
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\GlobalCsLetCsLtxMacro}
+% This command simply combines the functionality from \cmd{\csletcs} and \cmd{\GlobalLetLtxMacro}. This command would be a candidate for inclusion into letltxmacro or possibly etoolbox.
+%    \begin{macrocode}
+\newrobustcmd*{\GlobalCsLetCsLtxMacro}[2]{%
+	\ifcsdef{#2}{%
+		\expandafter\GlobalLetLtxMacro\csname#1\expandafter\endcsname\csname#2\endcsname
 	}{%
 		\csundef{#1}%
 	}%
@@ -553,7 +591,7 @@ and the derived files           autonum.ins,
 				\deflength{\autonum@environmentWidth}{\linewidth-\multlinegap-\multlinegap}%
 				\hspace{\autonum@environmentWidth}%
 %    \end{macrocode}
-				% Using global here is necessary to get the information out of the environment.
+				% Using global here is necessary to get the information out of the environment. As \cmd{\\} has an optional argument, you would think, that \cmd{\GlobalCsLetLtxMacro} is correct, while \cmd{\global}\cmd{\cslet} is incorrect (\href{http://tex.stackexchange.com/a/29837}{see here}). But although \cmd{\\} has an optional argument, it does not use \cmd{\newcommand} (see the definintion of \cmd{\Let@} in amsmath.sty for the details), but plain \cmd{\TeX}. Although using LetLtxMacro \href{http://tex.stackexchange.com/a/88007}{should never no harm}, it results in errors here, so it isn't used. 
 %    \begin{macrocode}
 				\global\cslet{autonum@newline#1}\\
 %    \end{macrocode}
@@ -564,7 +602,7 @@ and the derived files           autonum.ins,
 				% For multline, check, that autonum's label command is undefined, because this means, that the first pass (measuring pass) of the environment is active. This is to avoid getting the \cmd{\label} command of the second pass (displaying pass), where the \cmd{\label} command is set to the \href{http://tex.stackexchange.com/a/59088/7323}{null definition}. The multline environment seems to need the first pass, whereas other environments seem to need the second pass, so adapt to the environments.
 %    \begin{macrocode}
 				\ifboolexpr{not test {\ifstrequal{#1}{multline}} or test {\ifcsundef{autonum@label#1}}}{%
-					\global\cslet{autonum@label#1}{\label}%
+					\GlobalCsLetLtxMacro{autonum@label#1}\label
 				}{}%
 			\end{#1}%
 		\end{#2}%
@@ -659,8 +697,8 @@ and the derived files           autonum.ins,
 % Save the current newline and label commands.
 %    \begin{macrocode}
 \def\autonum@saveSubcommands{%
-	\let\autonum@labelNormal\label%
-	\let\autonum@newlineNormal\\%
+	\LetLtxMacro\autonum@labelNormal\label
+	\LetLtxMacro\autonum@newlineNormal\\%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -670,16 +708,15 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \def\autonum@patchSubcommands#1{%
 %    \end{macrocode}
-	% The following two lines seem to do the same and both activate the patched label command. As the second one should, in theory, be superior in case of an optional argument for the \cmd{\label} command, use this one.
+	% Activate the patched label command and support an optional argument for the \cmd{\label} command.
 %    \begin{macrocode}
-% 	\global\letcs{\label}{autonum@patched#1Label}%
-	\expandafter\GlobalLetLtxMacro\expandafter\label\csname autonum@patched#1Label\endcsname
+	\GlobalLetCsLtxMacro\label{autonum@patched#1Label}%
 %    \end{macrocode}
 	% Do not patch the newline command in a multline environment, as only the last line may get a \cmd{\notag} command, because all lines basically build one equation (see also amsmath's documentation, section 3.3).
 %    \begin{macrocode}
 	\ifstrequal{#1}{multline}{%
 	}{%
-	 	\global\letcs{\\}{autonum@patched#1Newline}%
+		\GlobalLetCsLtxMacro\\{autonum@patched#1Newline}%
 	}%
 }
 %    \end{macrocode}
@@ -689,8 +726,8 @@ and the derived files           autonum.ins,
 % Restore the newline and label commands. This must be global, as it had been overwritten globally in \cmd{\autonum@patchSubcommands}.
 %    \begin{macrocode}
 \def\autonum@restoreSubcommands{%
-	\GlobalLetLtxMacro{\label}{\autonum@labelNormal}%
-	\global\let\\\autonum@newlineNormal%
+	\GlobalLetLtxMacro\label\autonum@labelNormal
+	\GlobalLetLtxMacro\\\autonum@newlineNormal
 }
 %    \end{macrocode}
 %\end{macro}
@@ -820,9 +857,9 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \def\autonum@generatePatchedReferenceGeneral#1#2{%
 %    \end{macrocode}
-	% 	There might be reference commands, which have an optional argument. To support these, use \cmd{\csLetcsLtxMacro} instead of \cmd{\csletcs}.
+	% 	There might be reference commands, which have an optional argument. To support these, use \cmd{\CsLetCsLtxMacro} instead of \cmd{\csletcs}.
 %    \begin{macrocode}
-	\csLetcsLtxMacro{autonum@reference#1Old}{#1}%
+	\CsLetCsLtxMacro{autonum@reference#1Old}{#1}%
 %    \end{macrocode}
 	% 	Do not absorb any arguments, yet, because every further processing must be protected and this is the simplest way to achieve protected processing. Something like using \cmd{\@ifstar} inside of a moving argument would otherwise be very hard or impossible. Unfortunately, a simple approach like \cmd{\csDeclareDocumentCommand\{\#1\}\{sm\}} does produce a not yet understood infinite recursion.
 %    \begin{macrocode}
@@ -923,7 +960,7 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Use global as this is in the middle of the first local group of a math environment.
 %    \begin{macrocode}
-		\global\let\autonum@patchedNewline\\%
+		\GlobalLetLtxMacro\autonum@patchedNewline\\%
 %    \end{macrocode}
 	% Set the multipleLines variable if a newline is used. Do not use the newline for equations, as this results in "There's no line here to end" errors. This is ok, as if there is a newline in an environment, which is currently an equation, it is wrong anyway and should be set as an align environment. For that it is enough to set the multipleLines variable.
 %    \begin{macrocode}
@@ -941,7 +978,7 @@ and the derived files           autonum.ins,
 		% Set the environment's content and reset the newline command.
 %    \begin{macrocode}
 		#2%
-		\global\let\\\autonum@patchedNewline%
+		\GlobalLetLtxMacro\\\autonum@patchedNewline
 %    \end{macrocode}
 		% Store information if the current math environment. The roman number is used, as there might be no label and if there is one, it might not be available at the beginning of the environment. Delete the multipleLines variable, to avoid influencing the next \cmd{\[}-\cmd{\]}-environment, as the variable must be global.
 %    \begin{macrocode}
