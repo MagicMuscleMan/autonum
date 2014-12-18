@@ -139,7 +139,7 @@ and the derived files           autonum.ins,
 %\changes{v0.3.8}{2014/04/14}{Correct vertical whitespace after long lines with split.}
 %
 % \section{Introduction}
-% With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during the writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
+% With \LaTeX, the user has to decide manually to not number an equation by adding a star in the math environment. Authors who do not want to think about the numbering during writing (and maybe they should not), often use the environments without stars. As default, these users get all equations numbered, although there are \href{http://tex.stackexchange.com/q/29267/7323}{different opinions} about what should be numbered.
 %
 % The other automatic possibility one can think of is to number only the referenced equations. The \href{http://www.ctan.org/pkg/mh/}{mathtools} package's option \texttt{showonlyrefs} seems to be the solution for those who want to have the referenced equations numbered only. Unfortunately, for \href{http://www.ctan.org/pkg/amsmath}{amsmath} users this also means a step backwards, as the numbering can overwrite parts of the equation according to its documentation. Generally, this options seems to be quite unreliable as it is incompatible with the \href{http://www.ctan.org/pkg/cleveref/}{cleveref} package. The autonum package implements the numbering of referenced equations only without this deficiencies.
 %^^A This currently does not work with cleveref, as equations without a number increment the equation counter, too. As placing the labels does not always work correctly, \cmd{\mathtoolsset{showonlyrefs}} is not an option (see mathtools documentation, bottom of page 10).
@@ -150,6 +150,8 @@ and the derived files           autonum.ins,
 % \vspace{0.5em}
 % \cmd{\usepackage\{autonum\}}
 % \vspace{0.5em}
+%
+% This provides support for \cmd{\ref} (and \cmd{\cref} if cleveref is loaded, see section \ref{loadOrder}). If you need support for other reference commands, see section \ref{referenceCommands}. As you probably use the hyperref package, you should set the hypperref option \texttt{hypertexnames=false} when loading the hyperref package to avoid some warnings (see section \ref{hyperref}).
 %
 % The recommended style is to add a label to each logical equation. Then, simply use the references as needed. Never use the starred forms when defining an equation as they do not make sense with autonum and are deactivated. You can use the (redefined) \texttt{equation} or \cmd{\[}-\cmd{\]}-environment in most cases, if you add the appropriate \cmd{\begin\{split\}}-\cmd{\end\{split\}} pairs when needed. Sometimes, an \texttt{align}, \texttt{multline}, \texttt{gather}, \texttt{flalign} or \texttt{alignat} environment is needed.  Do \href{http://tug.org/pracjourn/2006-4/madsen/madsen.pdf}{not use \texttt{eqnarray}}.^^A, rarely use the \texttt{aligned} or \texttt{gathered} environments.
 %
@@ -177,7 +179,7 @@ and the derived files           autonum.ins,
 % If you want to try an example yourself, you can take this one, where only the first equation gets a number:
 %
 % \vspace{0.5em}
-% \noindent\cmd{\documentclass\{minimal\}}\\
+% \noindent\cmd{\documentclass\{article\}}\\
 % \cmd{\usepackage\{autonum\}}\\
 % \cmd{\begin\{document\}}\\
 % \indent\cmd{\begin\{equation\}}\cmd{\label\{a\}}\\
@@ -239,18 +241,51 @@ and the derived files           autonum.ins,
 %\end{macro}
 %
 % \section{Compatibility}
-% \subsection{Load Order}
-% As other packages might break autonum, it should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advanced math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum, as cleveref must not be loaded after amsmath. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors.  The support of autonum without amsmath has been discontinued due to missing demand.
+% \subsection{Load Order}\label{loadOrder}
+% As other packages might break autonum, it should be loaded very late. Normally, amsmath is loaded automatically to make use of the more advanced math environments. Nevertheless, to use other packages, it might be necessary to load amsmath manually. To use autonum with amsmath, hyperref and cleveref for example, the order must be amsmath $\rightarrow$ hyperref $\rightarrow$ cleveref $\rightarrow$ autonum. If a wrong order has been active, it might be necessary to delete the aux file manually to get rid of compile errors, which is generally a good debugging strategy if autonum is or was involved. The support of autonum without amsmath has been discontinued due to missing demand.
 %
-% \subsection{Hyperref}
-% The hyperref package must be loaded with the option \texttt{hypertexnames=false} to work when autonum is used.\\
-% Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored". Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is referenced. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
+% \subsection{Hyperref}\label{hyperref}
+% The hyperref package must be loaded with the option \texttt{hypertexnames=false} to work when autonum is used, as in the following example
 %
-% \subsection{Reference commands}
-% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported. Support for new reference commands can be added by executing\\
+% \vspace{0.5em}\noindent
+% \cmd{\usepackage[hypertexnames=false]\{hyperref\}}\\
+% \cmd{\usepackage\{autonum\}}
+% \vspace{0.5em}
+%
+% Problem description: Generally, the autonum package is careful not to break other packages, but with autonum there are non-starred mathematical environment which do not increase the equation counter if they are not referenced. This leads to the following warning in hyperref when more than one equation is used: "destination with the same identifier (name{equation.0.1}) has been already used, duplicate ignored".
+%
+% Additionally, the link anchors do not work correctly (with a reference followed by a labeled equation, there is a warning in tracing mode, too. Hyperref seems to increase \LaTeX's equation's counter (called \texttt{equation}) only if a equation is referenced. This counter may not be modified to avoid problems with Hyperref, as this would change the displayed equation number (and it does not work anyway). This problem is independent of cleveref. The problem might be solvable by modifying \cmd{\begin\{equation\}} or \cmd{\end\{equation\}}. Using \texttt{gather} instead of \texttt{equation} removes the warning, but hyperlinks still do not work.
+%
+% So it's a mess and probably not worth the time, as \texttt{hypertexnames=false} solves all these problems.
+%
+% \subsection{Reference commands}\label{referenceCommands}
+% As default the \cmd{\ref} and cleveref's \cmd{\cref} commands are supported (the latter one only if the cleveref package is loaded). 
+% If you want to add autonum support for other referencing commands, you have the following choices. Please mind that these interfaces might change in the future, as it's unclear what reference commands make sense beyond \cmd{\cref}. Please also mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the commands, respectively.
+%
+%\begin{macro}{\autonum@generatePatchedReference}
+% For normal reference commands expecting a single label name as an argument, you can use \cmd{\autonum@generatePatchedReference}\{\texttt{NewReferenceCommand}\}.
+%\end{macro}
+%
+%\begin{macro}{\autonum@generatePatchedReferenceCSL}
+% For reference commands expecting a comma separated list of label names as an argument, you can use\\
+% \cmd{\autonum@generatePatchedReferenceCSL}\{\texttt{NewReferenceCommand}\}.
+%\end{macro}
+%
+%\begin{macro}{\autonum@generatePatchedReferenceGeneral}
+% For reference commands expecting a general data structure containing label names as an argument, you can use\\
+% \cmd{\autonum@generatePatchedReferenceGeneral}\{\texttt{NewReferenceCommand}\}\\
+% \{\cmd{\SplitAndLoopMacro}\}.\\
+% The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}.
+%\end{macro}
+%
+%\begin{macro}{\crefrange}
+% Range commands like the \cmd{\crefrange} command are not supported at the moment. It's not completely clear, if this is a good or a bad thing. Please contact the package author if you are interested in this feature.
+%\end{macro}
+%
+% Support for new reference command names can be added by executing\\
 % \cmd{\let}\cmd{\ref}\cmd{\NewReferenceCommand}.
 %
-% If the new reference command can have optional arguments, you should write instead\\
+% If the new reference command can have optional arguments, you should probably write instead\\
 % \cmd{\LetLtxMacro}\cmd{\ref}\cmd{\NewReferenceCommand}.
 %
 % If you want to use the power of \cmd{\cref} without getting rid of the habit of writing \cmd{\ref}, you can just add the following code to the preamble
@@ -271,35 +306,18 @@ and the derived files           autonum.ins,
 % \texttt{\}\%}
 % \vspace{0.5em}
 %
-% If the original \cmd{\ref} command should not be overwritten, you have the following choices. Please mind that these interfaces might change in the future. Please also mind the \cmd{\makeatletter} and \cmd{\makeatother} command before and after the commands, respectively.
-%
-%\begin{macro}{\autonum@generatePatchedReference}
-% For normal reference commands expecting a single label name as an argument, you can use \cmd{\autonum@generatePatchedReference}\{\texttt{NewReferenceCommand}\}.
-%\end{macro}
-%
-%\begin{macro}{\autonum@generatePatchedReferenceCSL}
-% For reference commands expecting a comma separated list of label names as an argument, you can use\\
-% \cmd{\autonum@generatePatchedReferenceCSL}\{\texttt{NewReferenceCommand}\}.
-%\end{macro}
-%
-%\begin{macro}{\autonum@generatePatchedReferenceGeneral}
-% For reference commands expecting a general data structure containing label names as an argument, you can use\\
-% \cmd{\autonum@generatePatchedReferenceGeneral}\{\texttt{NewReferenceCommand}\}\\
-% \{\cmd{\SplitAndLoopMacro}\}.\\
-% The macro \cmd{\SplitAndLoopMacro} acts as a function expecting the to-be-called function as the first argument and the data structure as the second argument. It must call the function given in the first argument for each label name given in the data structure of the second argument. An example is the \cmd{\forcsvlist} macro from the etoolbox package, which is used to implement \cmd{\autonum@generatePatchedReferenceCSL}. Commands like the \cmd{\crefrange} command are not supported at the moment.
-%\end{macro}
 %
 % \section{Further Ideas}
 % \begin{itemize}
 % \item For equations with multiple lines, which have a width close to the linewidth, but whose width at the middle/end is not so large, the equation number should not be set below the equation but next to the equation as it is done if the equation is smaller.
-% \item Every label and every reference string could be transformed by \cmd{\pdfmdfivesum} if pdftex and inputenc with utf8 are used. This would enable support for all sort of special characters
 % \item A similar approach could be used for figure and table environments to print a warning, if such an environment is not referenced. With the subfig package, the solution would be harder, as a figure or table may be unreferenced, if all subfloats are referenced. Similarly, a subfloat may be unreferenced, if its parent environment is referenced. So the warning should only be printed if an unreferenced parent environment either does not have any child environment or if there is an unreferenced child environment.
-% \item A warning could be printed, if another compile is necessary.
+% \item A warning could be printed, if another compile is necessary. Sometimes this is the case, but not always.
 % \item A "*" could be used instead of a "+".
 % \item If a reference is used before the label is defined, the reference information is saved in a variable and can be used later in the current run when processing the label. It does not have to be saved to the aux file. If a reference is used after defining the label, the reference information is saved in the aux file and can be used in the next run when processing the label. The information does not have to be saved into a variable, as a label must only be defined once and the definition has already happened. Unfortunately, this would make it necessary to distinguish between definitions in the current and in the last run, as otherwise this leads either to oscillation or to defining everything in the end (depending if csdefaux or csdefall is used in the not-defined case), which is probably not worth the effort.
-% \item The command \cmd{\(} could be an alias for \texttt{begin\{split\}} and \cmd{\)} could be an alias for \texttt{end\{split\}}, note, that this collided with the \href{http://tex.stackexchange.com/questions/510/are-and-preferable-to}{LaTeX math inline syntax}
+% \item The command \cmd{\(} could be an alias for \texttt{begin\{split\}} and \cmd{\)} could be an alias for \texttt{end\{split\}} inside of another math environment, as the \href{http://tex.stackexchange.com/questions/510/are-and-preferable-to}{LaTeX math inline syntax} can only occur outside of a math environment.
 % \item This \href{http://tex.stackexchange.com/a/5652}{trick} might be handy
 % \item The \cmd{\crefrange} might be supported. As this would require a lot of work it will only be done if multiple people show interest and there are really convincing real-world examples where using \cmd{\crefrange} is superior to using \cmd{\cref}. Patches are, of course, welcome, too.
+% \item This documentation should be vastly improved from someone who is actually good in writing documentations.
 % \end{itemize}
 %
 % \section{Contributions}
@@ -361,6 +379,10 @@ and the derived files           autonum.ins,
 %     \item Vladimir Pozdyayev
 %         \begin{itemize}
 %             \item found an error if an equation is used inside of a figure environment, which has not been fixed, yet
+%         \end{itemize}
+%     \item Enno Nagel
+%         \begin{itemize}
+%             \item highlighted poor areas in the documentation, which (hopefully) have been improved
 %         \end{itemize}
 % \end{itemize}
 %
