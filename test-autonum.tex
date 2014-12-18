@@ -1,16 +1,22 @@
 \documentclass{article}
 
+% Load hyperref early to avoid an error on compilation without existing aux-file. This is in contrast to what is recommended in hyperref's documentation. When deleting the aux-file, there was an error on first compilation if hyperref was defined after the \AtEndDocument command below. But as the second compilation run without error and as the error also happened without autonum, this is a problem outside unrelated to autonum.
+\usepackage[hypertexnames=false]{hyperref}
+
 % Make this document look like endless paper to avoid page breaks, which make some of the tests useless.
 % See http://tex.stackexchange.com/a/27057/7323
 \usepackage{geometry}
 \geometry{paperwidth=20cm,paperheight=\maxdimen,margin=4cm}
 \usepackage{etoolbox}
 \AtBeginDocument{
-  \setbox0=\vbox\bgroup
-  \preto\enddocument{\egroup
-    \dimen0=\dp0
-    \pdfpageheight=\dimexpr\ht0+10cm\relax
-    \unvbox0\kern-\dimen0 }
+	\setbox0=\vbox
+	\bgroup
+}
+\AtEndDocument{
+	\egroup
+	\dimen0=\dp0
+	\pdfpageheight=\dimexpr\ht0+10cm\relax
+	\unvbox0\kern-\dimen0
 }
 
 % \usepackage[english,ngerman]{babel}
@@ -18,7 +24,6 @@
 % \usepackage[utf8x]{inputenx}
 
 \usepackage{amsmath}
-\usepackage[hypertexnames=false]{hyperref}
 \usepackage{cleveref}
 \usepackage{autonum}
 
