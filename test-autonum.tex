@@ -241,20 +241,47 @@
 					\text{line 2}
 				\end{split}
 			\end{align}
-		\item Align with two splits (should have four lines: \ref{firstSplit} and \ref{secondSplit})
+		\item Align with two splits (should have four lines), none referenced)
 			\begin{align}
 				\begin{split}
 					\text{line 1}
 					\\
 					\text{line 2}
-				\end{split}\label{firstSplit}
+				\end{split}
 				\\
 				\begin{split}
 					\text{line 3}
 					\\
 					\text{line 4}
-				\end{split}\label{secondSplit}
+				\end{split}
 			\end{align}
+		\item Align with two splits (should have four lines), both referenced \ref{firstSplit} and \ref{secondSplit})
+			\begin{align}
+				\label{firstSplit}
+				\begin{split}
+					\text{line 1}
+					\\
+					\text{line 2}
+				\end{split}
+				\\
+				\label{secondSplit}
+				\begin{split}
+					\text{line 3}
+					\\
+					\text{line 4}
+				\end{split}
+			\end{align}
+		\item Align with split and label at the wrong place should result in the detection of an error
+			{
+				% Redefine \PackageError in a TeX group so the redifinition does not scatter.
+				\def\PackageError#1#2#3{\\\text{Package error successfully detected.}}%
+				\begin{align}
+					\begin{split}
+						1 = 1
+					\end{split}
+					\label{problematicLabel}
+				\end{align}
+			}
 % 		\item super-short \[\(a+b\\d+e\)\]
 % 		\item Using aligned \ref{alignedOne}, \ref{alignedThree}
 % 			\begin{equation}
@@ -290,7 +317,7 @@
 							&= \sum_3^4 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\notag
 				\end{split}
 			\end{equation}
-		\item Split with a long line should have correct spacing below the environment automatically:
+		\item Split with a long line and without an explicit \textbackslash\texttt{notag} should have the same spacing as directly above and not the spacing as directly below:
 			\begin{equation}
 				\begin{split}
 					\sum_1^2 a &= 2a\\

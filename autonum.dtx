@@ -88,6 +88,7 @@ and the derived files           autonum.ins,
 \ProvidesPackage{autonum}[2014/04/14 v0.3.8 autonum LaTeX package]
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
+\RequirePackage{etextools}
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
 \RequirePackage{letltxmacro}
@@ -200,6 +201,24 @@ and the derived files           autonum.ins,
 % \noindent\cmd{\begin\{align\}}\\
 % \indent \texttt{a}\cmd{\label\{firstLabel\}}\texttt{\textbackslash\textbackslash}\\
 % \indent \texttt{b}\cmd{\label\{secondLabel\}}\\
+% \cmd{\end\{align\}}\\
+% \vspace{0.5em}
+%
+% \end{macro}
+
+% \begin{macro}{split}
+% The split environment should work as expected with one exception. To get correct vertical spacing after a non-referenced split environment, which is embedded into another math environment, autonum must execute code inside of the split environment. To identify the environment, currently the label name is used, which is not available inside of the split environment, if the label is given after the end of the split environment, which is possible without autonum. So as an exception to the rule above, provide the label before the beginning of the split environment when using a split environment. If the label is put into a wrong location, autonum prints an error to avoid accidently introducing a spacing or numbering problem. As an example, put the labels as following:
+%
+% \vspace{0.5em}
+% \noindent\cmd{\begin\{align\}}\\
+% \indent \cmd{\label\{firstLabel\}}\\
+% \indent \cmd{\begin\{split\}}\\
+% \indent\indent \texttt{a}\\
+% \indent\indent \texttt{\textbackslash\textbackslash}\\
+% \indent\indent \texttt{b}\\
+% \indent \cmd{\end\{split\}}\\
+% \indent \texttt{\textbackslash\textbackslash}\\
+% \indent \texttt{c}\cmd{\label\{secondLabel\}}\\
 % \cmd{\end\{align\}}\\
 % \vspace{0.5em}
 %
@@ -584,7 +603,7 @@ and the derived files           autonum.ins,
 % 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat,figure}%
 	\forcsvlist{\autonum@patchParametrizedFullEnvironment}{alignat}%
 	\forcsvlist{\autonum@patchFullEnvironment}{equation,gather,multline,flalign,align}%
-% 	\autonum@patchBlockEnvironment{split}%
+	\autonum@patchBlockEnvironment{split}%
 %    \end{macrocode}
 	%
 	% Patch the environment delimited by \cmd{\[} and \cmd{\]}.
@@ -622,8 +641,11 @@ and the derived files           autonum.ins,
 }
 \def\autonum@patchBlockEnvironment#1{%
 % 	\autonum@debug{patchBlockEnvironment; 1=#1}%
-	\autonum@saveEnvironmentSubcommands{#1}{equation}{}%
-	\autonum@patchEnvironmentHelper{#1}{0}%
+%    \end{macrocode}
+% 	There is no need to patch the newline or label commands like for the other environments, as they already have been patched in those outer math environments. So the environment subcommands do not have to be saved, too.
+%    \begin{macrocode}
+	\autonum@renameEnvironment{#1}{0}%
+	\autonum@changeEnvironment{#1}{0}%
 }
 \def\autonum@patchEnvironmentHelper#1#2{%
 % 	\autonum@debug{patchEnvironmentHelper; 1=#1; 2=#2}%
@@ -722,9 +744,15 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 	% Prepare the label and the newline commands and begin the displayed equation environment.
 %    \begin{macrocode}
-	\autonum@saveSubcommands
+	\ifstrequal{#1}{split}{%
+	}{%
+		\autonum@saveSubcommands
+	}%
 	\csuse{autonum@#1Old}#2%
-	\autonum@patchSubcommands{#1}%
+	\ifstrequal{#1}{split}{%
+	}{%
+		\autonum@patchSubcommands{#1}%
+	}%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -740,13 +768,25 @@ and the derived files           autonum.ins,
 	\autonum@possiblyHideNumber
 	\csuse{autonum@end#1Old}%
 %    \end{macrocode}
-	% Restore the subcommands. Do not restore the subcommands for the split environment, as \cmd{autonum@startChangeEnvironment} is not called for the split environment due to yet unknown reasons. The hypothesis is, that this is as the split environment is inside of another environment (equation). Thus, \cmd{\renewenvironment} is called inside a group. As \cmd{\renewenvironment} is always local (see http://tex.stackexchange.com/q/51733), the redefinition of the split environment does not work. As the split subcommands are currently neither saved nor patched, it is not only unnecessary, but really harmful to restore the subcommands. Doing so breaks splits together with other material in an align environment. This code should be changed after the root problem has been fixed.
+	% Restore the subcommands. Do not restore the subcommands for the split environment, as \cmd{autonum@startChangeEnvironment} is not called (even if set) for the split environment due to yet unknown reasons. The hypothesis is, that this is as the split environment is inside of another environment (equation). Thus, \cmd{\renewenvironment} is called inside a group. As \cmd{\renewenvironment} is always local (see http://tex.stackexchange.com/q/51733), the redefinition of the split environment does not work. As the split subcommands are currently neither saved nor patched, it is not only unnecessary, but really harmful to restore the subcommands. Doing so breaks splits together with other material in an align environment. This code should be changed after the root problem has been fixed. Neither delete the label, as it might be defined before the split environment and is used after its end.
 %    \begin{macrocode}
 	\ifstrequal{#1}{split}{%
+%    \end{macrocode}
+	% If a split environment is inside an align environment, the \cmd{\notag} must be set inside of the split environment to get correct vertical spacing after the environment if the line is so long, that the equation number would be placed below the equation and if the equation is not referenced. In order to set the \cmd{\notag} it must be known of the equation is referenced or not. With the current logic, the label is used to identify an equation. If the label is only given after the split (but before the line of the align ends), this is impossible, thus, the label has to be given before the end of the split environment. As split provides not numbering, it's best to provide the label before the beginning of the split environment. To save users, redefine \cmd{\label} to result in an error if the \cmd{\label} is called too late. In the future, this could be changed if equations have another unique identifier like a number. The \cmd{\label} can be overwritten (but mind the optional argument, which must be supported), as the split TeX-group will end directly after this macro. In order to be effective, it must be smuggled outside, which \cmd{\aftergroup@def} from etextools takes care of. Outside, it will be removed automatically, as soon as the TeX-group ends, e.g. if the line or the environment ends.
+%    \begin{macrocode}
+		\renewcommand\label[2][]{%
+			\PackageError{autonum}{%
+				A label must not be placed between \detokenize{\end{split}}\MessageBreak
+				and the end (of a line) of a math environment\MessageBreak
+				when using autonum. Wrongly placed label is:\MessageBreak
+				##2%
+			}{Move the \detokenize{\label}call before \detokenize{\begin{split}}}%
+		}%
+		\aftergroup@def{\label}%
 	}{%
 		\autonum@restoreSubcommands
+		\global\undef\autonum@currentLabel
 	}%
-	\global\undef\autonum@currentLabel
 }
 %    \end{macrocode}
 %\end{macro}
