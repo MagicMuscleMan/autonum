@@ -217,7 +217,9 @@
 				\\[\baselineskip]
 				b
 			\end{align}
-		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
+		\ifautonum{
+			\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
+		}
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
 		\item align and split with the label defined before the split environment \ref{splitAlign}
 			\begin{align}
