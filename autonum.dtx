@@ -528,6 +528,36 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
+%\begin{macro}{\meaningx}
+% Acts like \cmd{\meaning}, but if the given macro is defined via \cmd{\newcommand} or similar and has an optional argument, \cmd{\meaning} does always show something like \cmd{\@protected@testopt} \cmd{\command} \cmd{\\command}, which is not very useful. That is why \cmd{\meaningx} outputs the meaning of \cmd{\\command} instead. \cmd{\meaningx} is expandable (see "texdoc etex" and \href{http://tex.stackexchange.com/a/66168}{this information about expandability} for more details).
+%    \begin{macrocode}
+\def\meaningx#1{%
+	\expandafter\ifcsname\string #1\endcsname
+		\expandafter\meaning\csname\string #1\endcsname
+	\else
+		\meaning#1%
+	\fi
+}
+%    \end{macrocode}
+%\end{macro}
+
+%\begin{macro}{\autonum@debug}
+% Print the \cmd{\meaningx} of the given macro.
+%    \begin{macrocode}
+\def\autonum@debugMacro#1{%
+%    \end{macrocode}
+	% Please mind, that ppdflatex distorts the messages printed by this macro.
+%    \begin{macrocode}
+	\autonum@debug{%
+		\detokenize{#1}defined as \MessageBreak
+		\meaning#1 \expandafter\ifcsname\string #1\endcsname\MessageBreak
+		with \expandafter\detokenize\expandafter{\csname\string#1\endcsname}defined as\MessageBreak
+		\meaningx#1\fi
+	}%
+}
+%    \end{macrocode}
+%\end{macro}
+
 % This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behavior seems reasonable.
 %    \begin{macrocode}
 \AtBeginDocument{%
