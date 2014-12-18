@@ -195,7 +195,7 @@ and the derived files           autonum.ins,
 %
 % \begin{macro}{align et al.}
 % Instead of equation you may also use one of the following environments: \texttt{align}, \texttt{gather}, \texttt{multline}, \texttt{flalign}. ^^A, \texttt{aligned}, \texttt{gathered}. ^^A The \texttt{multlined} environment is patched, if it is available.
-% The label must be given after the equation but before the newline command, e.g.
+% The label should be given after the equation but before the newline command, e.g.
 %
 % \vspace{0.5em}
 % \noindent\cmd{\begin\{align\}}\\
@@ -204,10 +204,11 @@ and the derived files           autonum.ins,
 % \cmd{\end\{align\}}\\
 % \vspace{0.5em}
 %
+% Providing the label at the beginning of an equation's line should work, too, but is less thoroughly tested. Please provide feedback, if you find a non-working constellation, which works if autonum is not loaded.
 % \end{macro}
 
 % \begin{macro}{split}
-% The split environment should work as expected with one exception. To get correct vertical spacing after a non-referenced split environment, which is embedded into another math environment, autonum must execute code inside of the split environment. To identify the environment, currently the label name is used, which is not available inside of the split environment, if the label is given after the end of the split environment, which is possible without autonum. So as an exception to the rule above, provide the label before the beginning of the split environment when using a split environment. If the label is put into a wrong location, autonum prints an error to avoid accidently introducing a spacing or numbering problem. As an example, put the labels as following:
+% The split environment should work as expected with one exception. To get correct vertical spacing after a non-referenced split environment, which is embedded into another math environment, autonum must execute code inside of the split environment. To identify the environment, currently the label name is used, which is not available inside of the split environment, if the label is given after the end of the split environment, which is possible without autonum. So as an exception to the rule above, provide the label before the beginning of the split environment when using a split environment to be on the safe side. Providing it inside of the split environment seems to work currently, but is not guaranteed to work in the future. If the label is given too late, autonum prints an error to avoid accidently introducing a spacing or numbering problem. As an example, put the labels as following:
 %
 % \vspace{0.5em}
 % \noindent\cmd{\begin\{align\}}\\

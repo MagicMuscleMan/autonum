@@ -75,8 +75,12 @@
 			\end{equation}
 			\ref{referenceAfter}
 		\item Having an unlabeled equation
-			\begin{equation}\label{abc}
+			\begin{equation}
 				a^2 + b^2 = c^2
+			\end{equation}
+		\item Having a labeled equation with the label at the end of the equation \ref{abc}
+			\begin{equation}
+				a^2 + b^2 = c^2\label{abc}
 			\end{equation}
 		\item Having a labeled, but unreferenced equation
 			\begin{equation}\label{unreferenced}
@@ -216,15 +220,21 @@
 		\item shortcut and split \ref{split} \[ \label{split}\begin{split} s \\ p \end{split} \] (needs autonum)
 		\item equation and split \ref{splitEquation} \begin{equation} \label{splitEquation}\begin{split} s \\ p \end{split} \end{equation}
 		\item align and split with the label defined before the split environment \ref{splitAlign}
-			\makeatletter
 			\begin{align}
 				\label{splitAlign}
 				\begin{split}
 					s
 				\end{split}
 			\end{align}
+			\makeatletter
 			\ifdef{\autonum@currentLabel}{TEST FEHLGESCHLAGEN!}{}
 			\makeatother
+		\item align and split with the label defined in the split environment \ref{splitInAlign}
+			\begin{align}
+				\begin{split}
+					s\label{splitInAlign}
+				\end{split}
+			\end{align}
 		\item Align with split and non-split (should have two lines)
 			\begin{align}
 				\begin{split}
