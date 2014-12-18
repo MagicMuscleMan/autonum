@@ -500,6 +500,15 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
+%\begin{macro}{\renewcommandsequence}
+% This command combines the macro \cmd{\csdef} from the package etoolbox and \LaTeX's \cmd{\renewcommand} macro. This command would be a candidate for inclusion into etoolbox or into LaTeX2e, although the former is much more likely.
+%    \begin{macrocode}
+\def\renewcommandsequence#1{%
+	\expandafter\renewcommand\csname #1\endcsname
+}
+%    \end{macrocode}
+%\end{macro}
+
 %\begin{macro}{\ifstar}
 % This command is similar to the \cmd{\@ifstar} command from LaTeX, but it absorbs a token instead of peeking ahead. This command would be a candidate for inclusion into etoolbox.
 %    \begin{macrocode}
@@ -519,7 +528,7 @@ and the derived files           autonum.ins,
 %\end{macro}
 
 %\begin{macro}{\autonum@debug}
-% Activate and deactivate debugging by commenting and uncommenting the folowing code.
+% Activate and deactivate debugging by commenting and uncommenting the following code.
 %    \begin{macrocode}
 \def\autonum@debug#1{%
 	\PackageWarning{autonum}{#1}%
@@ -681,7 +690,7 @@ and the derived files           autonum.ins,
 \def\autonum@changeEnvironment#1#2{%
 % 	\autonum@debug{changeEnvironment; 1=#1; 2=#2}%
 %    \end{macrocode}
-		% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once. The following if is only needed to distinguish between environments without (e.g. equation) and with one parameter (e.g. alignat).
+	% Although Amsmath's environment is executed twice (for measuring and for painting), the content here is executed only once. The following if is only needed to distinguish between environments without (e.g. equation) and with one parameter (e.g. alignat).
 %    \begin{macrocode}
 	\ifnum #2=0%
 		\renewenvironment{#1}{%
@@ -697,7 +706,7 @@ and the derived files           autonum.ins,
 		}%
 	\fi
 %    \end{macrocode}
-		% Delete the starred versions of the environment, as they sometimes lead to strange errors a long time after using the starred version. By deleting it, the error occurs at the right place.
+	% Delete the starred versions of the environment, as they sometimes lead to strange errors a long time after using the starred version. By deleting it, the error occurs at the right place.
 %    \begin{macrocode}
 	\global\csundef{#1*}%
 	\global\csundef{end#1*}%
@@ -821,7 +830,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 			\let\df@label\@empty%
 %    \end{macrocode}
-			% If the following test is true, \cmd{\label} has been called without optional argument, as the default has been used internally.
+			% If the following test is true, \cmd{\label} has been called without optional argument, as the default has been used internally. This test is from \href{http://tex.stackexchange.com/a/53091}{egreg}.
 %    \begin{macrocode}
 			\if\relax\detokenize{##1}\relax
 				\csuse{autonum@label#1}{##2}%
@@ -859,7 +868,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \def\autonum@possiblyHideNumber{
 	\ifdef{\autonum@currentLabel}{%
-		\ifcsedef{autonum@\csuse{autonum@currentLabel}Referenced}{%
+		\ifcsedef{autonum@\autonum@currentLabel Referenced}{%
 		}{%
 			\notag
 		}%
