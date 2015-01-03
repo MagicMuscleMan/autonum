@@ -43,7 +43,7 @@ See http://www.latex-project.org/lppl.txt
 \endpreamble
 \postamble
 
-Copyright (C) 2012, 2013, 2014 by Patrick Häcker <pat_h@web.de>
+Copyright (C) 2012, 2013, 2014, 2015 by Patrick Häcker <pat_h@web.de>
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License (LPPL), either
@@ -88,7 +88,13 @@ and the derived files           autonum.ins,
 \ProvidesPackage{autonum}[2014/12/19 v0.3.9 autonum LaTeX package]
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
+%
+% Avoid \href{https://groups.google.com/d/msg/comp.text.tex/VRrFB4ll5n0/Vu31OC4hQG8J}{a conflict} between etoolbox and etextools
+\makeatletter % The missing \makeatother command is on purpose (as every other combination results in an error).
+\let\autonum@etoolbox@forlistloop\forlistloop
 \RequirePackage{etextools}
+\let\forlistloop\autonum@etoolbox@forlistloop
+%
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
 \RequirePackage{letltxmacro}
@@ -341,6 +347,7 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item reported a bug occuring when using \cmd{\cref} with comma separated arguments what lead to its fix
 %             \item started an interesting discussion if cleveref's \cmd{\crefrange} command should be supported in autonum or not
+%             \item found an incompatibility with biblatex, which lead to its fix
 %         \end{itemize}
 %     \item Toby Cubitt
 %         \begin{itemize}
@@ -384,6 +391,10 @@ and the derived files           autonum.ins,
 %     \item Enno Nagel
 %         \begin{itemize}
 %             \item highlighted poor areas in the documentation, which (hopefully) have been improved
+%         \end{itemize}
+%     \item Deniz Stiegemann
+%         \begin{itemize}
+%             \item found an incompatibility with biblatex, which lead to its fix
 %         \end{itemize}
 % \end{itemize}
 %

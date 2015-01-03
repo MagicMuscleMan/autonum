@@ -27,6 +27,13 @@
 \usepackage{cleveref}
 \usepackage{autonum}
 
+% This package is not needed and can be uncommented at any time. Loading it ensures that conflicts between this package and autonum (being involved by loading etoolbox and etextools) are detected.
+\usepackage[backend=bibtex]{biblatex}
+% Deactivate a warning from biblatex, as the package is intentionally not used in this document.
+\makeatletter
+\def\blx@ifsigned#1#2#3#4{}%
+\makeatother
+
 \newcounter{Hequation}
 \renewcommand{\theHequation}{\thechapter.\arabic{Hequation}}
 \makeatletter
