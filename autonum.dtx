@@ -400,6 +400,7 @@ and the derived files           autonum.ins,
 %     \item Fredrick Freekowtski
 %         \begin{itemize}
 %             \item found a bug when referencing an align environment, which lead to its fix
+%             \item found a bug when having a newline directly followed by an alignment character in an align environment, which lead to its fix
 %         \end{itemize}
 % \end{itemize}
 %
@@ -945,17 +946,17 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 \def\autonum@generatePatchedNewline#1{%
 %    \end{macrocode}
-% 	The \cmd{\\} command has an optional argument, e.g. in an align environment, to put some extra vertical space between two lines. Thus, the patched newline command must currectly cope with an optional argument, too, if it has been given.
+% 	The \cmd{\\} command has an optional argument, e.g. in an align environment, to put some extra vertical space between two lines. Thus, the patched newline command must correctly cope with an optional argument, too, if it has been given.
 %    \begin{macrocode}
-	\newcommandsequence{autonum@patched#1Newline}[1][]{%
+	\newcommandsequence{autonum@patched#1Newline}{%
 % 		\autonum@debug{In patched#1Newline, 1=##1}%
 		\autonum@possiblyHideNumber
-		\if\relax\detokenize{##1}\relax
-			\csuse{autonum@newline#1}%
-		\else
-			\csuse{autonum@newline#1}[##1]%
-		\fi
 		\global\undef\autonum@currentLabel
+% 		\autonum@debug{\expandafter\meaning\csname autonum@newline#1\endcsname}%
+		\csuse{autonum@newline#1}%
+%    \end{macrocode}
+		% CAUTION: Do not write code below this comment and inside of this macro. This is because the newline command above looks for an optional argument in the input stream, which it cannot read if there are further tokens inside of this macro. Absorbing the optional argument in this macro and transfering it to the newline command did have unexpected side effects (a test case has been added for this).
+%    \begin{macrocode}
 	}%
 }
 %    \end{macrocode}
