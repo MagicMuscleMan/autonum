@@ -356,6 +356,11 @@
 				\end{split}
 			\end{equation}
 			Note, that the \textbackslash\texttt{label} must not be put inside the \texttt{split} environment, as according to the \AmS-math documentation \texttt{split} provides no numbering.
+		\item This is a reference to an align environment with alignment \ref{alignment}.
+			\begin{align}%
+				a &= 1,\label{alignment}\\%
+				cd &= 2\label{rowTwo}%
+			\end{align}%
 	\end{itemize}
 	\section{Using ref in section \ref{i1}}\label{i1} text
 	\ifcleveref{

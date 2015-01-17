@@ -397,6 +397,10 @@ and the derived files           autonum.ins,
 %         \begin{itemize}
 %             \item found an incompatibility with biblatex, which lead to its fix
 %         \end{itemize}
+%     \item Fredrick Freekowtski
+%         \begin{itemize}
+%             \item found a bug when referencing an align environment, which lead to its fix
+%         \end{itemize}
 % \end{itemize}
 %
 %
@@ -833,8 +837,8 @@ and the derived files           autonum.ins,
 % Save the current newline and label commands.
 %    \begin{macrocode}
 \def\autonum@saveSubcommands{%
-	\LetLtxMacro\autonum@labelNormal\label
-	\LetLtxMacro\autonum@newlineNormal\\%
+	\GlobalLetLtxMacro\autonum@labelNormal\label
+	\GlobalLetLtxMacro\autonum@newlineNormal\\%
 }
 %    \end{macrocode}
 %\end{macro}
@@ -879,6 +883,11 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 	\newcommandsequence{autonum@patched#1Label}[2][]{%
 % 		\autonum@debug{In patched#1Label, 1=##1, 2=##2}%
+%    \end{macrocode}
+		% Do not do the labeling work twice, i.e. in amsmath's measuring and in it's display pass. Doing everything in the display pass is correct, because during the measuring pass, the original label commands are set to only gobble their arguments instead of doing something useful (the latter is done in the display pass).
+%    \begin{macrocode}
+		\ifmeasuring@
+		\else
 %    \end{macrocode}
 		% The labeling information is needed in the newline command. Therefore, the following variable is used to store it until the next newline command. As the definition is local and every line in an multi-line displayed math environment has its own group, the variable does not have to be deleted explicitly.
 %    \begin{macrocode}
@@ -925,6 +934,7 @@ and the derived files           autonum.ins,
 		}{%
 % 			\autonum@debug{In patched#1Label, label ##2 has not been referenced}%
 		}%
+		\fi
 	}%
 }
 %    \end{macrocode}
