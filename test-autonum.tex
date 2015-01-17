@@ -356,6 +356,13 @@
 				\end{split}
 			\end{equation}
 			Note, that the \textbackslash\texttt{label} must not be put inside the \texttt{split} environment, as according to the \AmS-math documentation \texttt{split} provides no numbering.
+		\item Split inside an equation, where the label is inside split (which is discouraged, see directly above) and reference \ref{insideSplit}
+			\begin{equation}
+				\begin{split}
+					\label{insideSplit}
+					\text{Check this line for an equation number!}
+				\end{split}
+			\end{equation}
 		\item This is a reference to an align environment with alignment \ref{alignment}.
 			\begin{align}%
 				a &= 1,\label{alignment}\\%

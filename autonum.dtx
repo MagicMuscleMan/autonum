@@ -402,6 +402,10 @@ and the derived files           autonum.ins,
 %             \item found a bug when referencing an align environment, which lead to its fix
 %             \item found a bug when having a newline directly followed by an alignment character in an align environment, which lead to its fix
 %         \end{itemize}
+%     \item TeX Stack Exchange user bers
+%         \begin{itemize}
+%             \item found a bug when putting a label inside a split itself being inside of an equation, which lead to its fix
+%         \end{itemize}
 % \end{itemize}
 %
 %
@@ -683,7 +687,7 @@ and the derived files           autonum.ins,
 \def\autonum@patchBlockEnvironment#1{%
 % 	\autonum@debug{patchBlockEnvironment; 1=#1}%
 %    \end{macrocode}
-% 	There is no need to patch the newline or label commands like for the other environments, as they already have been patched in those outer math environments. So the environment subcommands do not have to be saved, too.
+% 	There is no need to patch the newline or label commands like for the other environments, as they already have been patched in those outer math environments. So the environment subcommands do not have to be saved, too. However, split inside of an equation environment resets the label command, so that our version of the label command (of the equation) is no longer valid. Currently, this is taken care of in startChangeEnvironment.
 %    \begin{macrocode}
 	\autonum@renameEnvironment{#1}{0}%
 	\autonum@changeEnvironment{#1}{0}%
@@ -787,11 +791,21 @@ and the derived files           autonum.ins,
 	% Prepare the label and the newline commands and begin the displayed equation environment.
 %    \begin{macrocode}
 	\ifstrequal{#1}{split}{%
+%    \end{macrocode}
+		% Split does not have its own label command. However, beginning the split environment inside of an equation environment resets the label command so that our definition is no longer used. Thus, save the (currently patched) label command before starting the environment.
+%    \begin{macrocode}
+		\GlobalLetLtxMacro\autonum@outerMathEnvironmentLabel\label
 	}{%
 		\autonum@saveSubcommands
 	}%
+	%
 	\csuse{autonum@#1Old}#2%
+	%
 	\ifstrequal{#1}{split}{%
+%    \end{macrocode}
+		% Restore the just saved label command (see above).
+%    \begin{macrocode}
+		\GlobalLetLtxMacro\label\autonum@outerMathEnvironmentLabel
 	}{%
 		\autonum@patchSubcommands{#1}%
 	}%
@@ -814,7 +828,7 @@ and the derived files           autonum.ins,
 %    \begin{macrocode}
 	\ifstrequal{#1}{split}{%
 %    \end{macrocode}
-	% If a split environment is inside an align environment, the \cmd{\notag} must be set inside of the split environment to get correct vertical spacing after the environment if the line is so long, that the equation number would be placed below the equation and if the equation is not referenced. In order to set the \cmd{\notag} it must be known of the equation is referenced or not. With the current logic, the label is used to identify an equation. If the label is only given after the split (but before the line of the align ends), this is impossible, thus, the label has to be given before the end of the split environment. As split provides not numbering, it's best to provide the label before the beginning of the split environment. To save users, redefine \cmd{\label} to result in an error if the \cmd{\label} is called too late. In the future, this could be changed if equations have another unique identifier like a number. The \cmd{\label} can be overwritten (but mind the optional argument, which must be supported), as the split TeX-group will end directly after this macro. In order to be effective, it must be smuggled outside, which \cmd{\aftergroup@def} from etextools takes care of. Outside, it will be removed automatically, as soon as the TeX-group ends, e.g. if the line or the environment ends.
+	% If a split environment is inside an align environment, the \cmd{\notag} must be set inside of the split environment to get correct vertical spacing after the environment if the line is so long, that the equation number would be placed below the equation and if the equation is not referenced. In order to set the \cmd{\notag} it must be known if the equation is referenced or not. With the current logic, the label is used to identify an equation. If the label is only given after the split (but before the line of the align ends), this is impossible, thus, the label has to be given before the end of the split environment. As split provides no numbering, it's best to provide the label before the beginning of the split environment. To save users, redefine \cmd{\label} to result in an error if the \cmd{\label} is called too late. In the future, this could be changed if equations have another unique identifier like a number. The \cmd{\label} can be overwritten (but mind the optional argument, which must be supported), as the split TeX-group will end directly after this macro. In order to be effective, it must be smuggled outside, which \cmd{\aftergroup@def} from etextools takes care of. Outside, it will be removed automatically, as soon as the TeX-group ends, e.g. if the line or the environment ends.
 %    \begin{macrocode}
 		\renewcommand\label[2][]{%
 			\PackageError{autonum}{%
