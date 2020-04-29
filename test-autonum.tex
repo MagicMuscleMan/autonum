@@ -28,11 +28,11 @@
 \usepackage{autonum}
 
 % This package is not needed and can be uncommented at any time. Loading it ensures that conflicts between this package and autonum (being involved by loading etoolbox and etextools) are detected.
-\usepackage[backend=bibtex]{biblatex}
+\usepackage{biblatex}
 % Deactivate a warning from biblatex, as the package is intentionally not used in this document.
-\makeatletter
-\def\blx@ifsigned#1#2#3#4{}%
-\makeatother
+% \makeatletter
+% \def\blx@ifsigned#1#2#3#4{}%
+% \makeatother
 
 \newcounter{Hequation}
 \renewcommand{\theHequation}{\thechapter.\arabic{Hequation}}
@@ -98,10 +98,11 @@
 			\begin{equation}\label{unreferenced}
 				\sqrt{a}
 			\end{equation}
-		\item Having a labeled equation with a very strange label \ref{äöüÄÖÜß?:, 3075µ!/§} does only work without package inputenx
-			\begin{equation}\label{äöüÄÖÜß?:, 3075µ!/§}
-				\sqrt{b}
-			\end{equation}
+% 		\item Having a labeled equation with a very strange label \ref{äöüÄÖÜß?:, 3075µ!/§} does only work without package inputenx
+% 			\begin{equation}
+% 			\label{äöüÄÖÜß?:, 3075µ!/§}
+% 				\sqrt{b}
+% 			\end{equation}
 		\item Having a labeled equation with a colon in the label \ref{label:colon}
 			\begin{equation}\label{label:colon}
 				\sqrt{c}
@@ -115,10 +116,11 @@
 				\sqrt{e}\label{referenceAfter:colon}
 			\end{equation}
 			and referencing \ref{referenceAfter:colon} only afterwards
-		\item Having a labeled equation with umlauts in the label \ref{äöüÄÖÜßLabel}
-			\begin{equation}\label{äöüÄÖÜßLabel}
-				\sqrt{c}
-			\end{equation}
+% 		\item Having a labeled equation with umlauts in the label \ref{äöüÄÖÜßLabel}
+% 			\begin{equation}
+% 			\label{äöüÄÖÜßLabel}
+% 				\sqrt{c}
+% 			\end{equation}
 		\item Check for spurious whitespace around reference (\ref{checkWhitespace})
 			\begin{equation}\label{checkWhitespace}
 				b_c
@@ -159,6 +161,16 @@
 					g
 				\end{equation}
 				\cref{crefOne}
+			\item Using Cref with one argument
+				\begin{equation}\label{CrefOne}
+					g
+				\end{equation}
+				\Cref{CrefOne}
+			\item Using labelcref with one argument
+				\begin{equation}\label{labelcrefOne}
+					g
+				\end{equation}
+				\labelcref{labelcrefOne}
 			\item Using cref with two arguments
 				\begin{equation}\label{crefTwo}
 					cr = ef

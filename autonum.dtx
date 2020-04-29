@@ -89,12 +89,6 @@ and the derived files           autonum.ins,
 \PassOptionsToPackage{hypertexnames=false}{hyperref}
 \RequirePackage{etoolbox}
 %
-% Avoid \href{https://groups.google.com/d/msg/comp.text.tex/VRrFB4ll5n0/Vu31OC4hQG8J}{a conflict} between etoolbox and etextools
-\makeatletter % The missing \makeatother command is on purpose (as every other combination results in an error).
-\let\autonum@etoolbox@forlistloop\forlistloop
-\RequirePackage{etextools}
-\let\forlistloop\autonum@etoolbox@forlistloop
-%
 \RequirePackage{amsmath}
 \RequirePackage[absolute]{textpos}
 \RequirePackage{letltxmacro}
@@ -631,6 +625,27 @@ and the derived files           autonum.ins,
 %    \end{macrocode}
 %\end{macro}
 
+% \begin{macro}{\aftergroup@def}
+% Provide the \cmd{\aftergroup@def} command originally defined in the \cmd{etextools} package
+%    \begin{macrocode}
+\ifdefcounter{\ettl@fter}{}{\newcount\ettl@fter}
+\providerobustcmd*\aftergroup@def{\@ifstar\aftergroup@defstar\aftergroup@d@f}
+\providerobustcmd*\@ftergroup@def[3]{%
+   \aftergroup#2\aftergroup#3\aftergroup#1%
+   \aftergroup\global \aftergroup\undef \aftergroup#1}
+\providerobustcmd*\aftergroup@defstar[1]{%
+   \global\expandafter\let\csname ettl@ftergroup@def\the\numexpr\ettl@fter+1\endcsname#1%
+   \global\advance\ettl@fter\@ne
+   \expandafter\@ftergroup@def\csname ettl@ftergroup@def\the\ettl@fter\endcsname\let#1}
+\providerobustcmd*\aftergroup@d@f[1]{%
+   \let\etex@let@primitive\let   \def\let{\global\etex@let@primitive}%
+   \expandafter\LetLtxMacro\csname ettl@ftergroup@def\the\numexpr\ettl@fter+1\endcsname#1%
+   \global\advance\ettl@fter\@ne
+   \etex@let@primitive\let=\etex@let@primitive
+   \expandafter\@ftergroup@def\csname ettl@ftergroup@def\the\ettl@fter\endcsname\LetLtxMacro#1}%
+%    \end{macrocode}
+% \end{macro}
+
 % This is needed to not get overwritten by other packages. The package autonum only overwrites some commands whose name start with \cmd{\autonum}. Other commands are only patched, so the currently valid command gets called, too. So although not very polite, this behavior seems reasonable.
 %    \begin{macrocode}
 \AtBeginDocument{%
@@ -664,6 +679,8 @@ and the derived files           autonum.ins,
 	\autonum@generatePatchedReference{ref}%
 	\ifdef{\cref}{%
 		\autonum@generatePatchedReferenceCSL{cref}%
+		\autonum@generatePatchedReferenceCSL{Cref}%
+		\autonum@generatePatchedReferenceCSL{labelcref}%
 	}{}%
 %    \end{macrocode}
 %    \begin{macrocode}
